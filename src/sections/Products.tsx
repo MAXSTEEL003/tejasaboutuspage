@@ -19,13 +19,13 @@ export default function Products({ sel, setSel }: Props) {
             <Reveal><Label>The Collection</Label></Reveal>
             <Reveal delay={90}>
               <h2 className="mt-4 text-[clamp(2.2rem,5.5vw,4.6rem)] font-light leading-[1.02] tracking-tight">
-                Four grains,<br /><span className="font-serif italic">four characters.</span>
+                Five grains,<br /><span className="font-serif italic">five characters.</span>
               </h2>
             </Reveal>
           </div>
           <Reveal delay={180} className="max-w-xs">
             <p className="text-sm leading-relaxed text-earth/65">
-              Every variety is milled to order, aged for depth, and packed in 5–50&nbsp;kg lots. Wholesale and private-label enquiries welcome.
+              Every variety is milled to order, aged for depth, and packed in food-grade wholesale bags. Featuring our flagship Keshar Kali Wada Kolam.
             </p>
           </Reveal>
         </div>
@@ -46,8 +46,13 @@ export default function Products({ sel, setSel }: Props) {
 
                 <span className="col-span-2 md:col-span-1">
                   <button onClick={() => pick(i)} className="block text-left">
-                    <span className="block text-xl font-light tracking-tight md:text-3xl">{v.name}</span>
-                    <span className="mt-1 block text-xs text-earth/55 md:text-sm">{v.best}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="block text-xl font-light tracking-tight md:text-3xl">{v.name}</span>
+                      {v.name === 'Keshar Kali' && (
+                        <span className="rounded-full bg-gold/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-earth">★ Flagship Bag</span>
+                      )}
+                    </div>
+                    <span className="mt-1 block text-xs text-earth/55 md:text-sm">{v.subname} · {v.best}</span>
                   </button>
                 </span>
 

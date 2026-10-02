@@ -1,11 +1,13 @@
 export type Variety = {
   name: string
+  subname: string
   tone: [string, string, string]
   tint: string
   length: number
   len: string
   mm: number
   width: number
+  thickness: number
   texture: string
   aroma: string
   aged: string
@@ -14,41 +16,198 @@ export type Variety = {
   pins: string[]
   price: string
   best: string
+  specs: {
+    length: string
+    width: string
+    thickness: string
+    ratio: string
+    varietyType: string
+    origin: string
+  }
 }
 
 export const VARIETIES: Variety[] = [
   {
-    name: 'Keshar Kali', tone: ['#fff7e0', '#efdba8', '#bb9a5c'], tint: '#f1dfb0', length: 0.86, len: '7.4 mm', mm: 7.4, width: 2.1,
-    texture: 'Separate, soft & fluffy', aroma: 'Mild floral, delicate', aged: 'Aged 12 months',
-    note: 'Premium Wada Kolam special: silky slender grains that cook up fragrant, tender, and distinct ("Khila Khila Dana").',
-    meters: [['Length', 84], ['Fragrance', 78], ['Fluffiness', 92], ['Firmness', 60]],
-    pins: ['Soft golden blush', 'Delicate natural groove', 'Khila Khila separate grains'],
-    price: '₹96', best: 'Daily meals & Festive cooking',
+    name: 'Keshar Kali',
+    subname: 'Kolam Raw · Premium Wada Kolam',
+    tone: ['#fffdf7', '#f6edd9', '#d2b47e'],
+    tint: '#f8f2e2',
+    length: 5.1 / 8.4,
+    len: '5.1 mm',
+    mm: 5.1,
+    width: 1.4,
+    thickness: 1.3,
+    texture: 'Soft, tender, fluffy & separate ("Khila Khila Dana")',
+    aroma: 'Delicate floral aroma, subtly sweet',
+    aged: 'Aged 12 months in aerated silos',
+    note: 'Authentic Maharashtra Wada Kolam (Kolam Raw): signature 5.1 mm slender grains with natural notched germ tip and blunt apex. Cooks up light, fluffy, and separate.',
+    meters: [
+      ['Fluffiness', 96],
+      ['Fragrance', 84],
+      ['Grain Separation', 94],
+      ['Softness & Bite', 92],
+    ],
+    pins: [
+      '5.1 mm length × 1.4 mm width × 1.3 mm thickness',
+      'Distinct oblique notched tip (embryo bevel)',
+      'Blunt, smoothly rounded apical apex',
+      'Translucent vitreous endosperm with starchy core',
+    ],
+    price: '₹96',
+    best: 'Daily meals & Festive Biryani',
+    specs: {
+      length: '5.1 mm',
+      width: '1.4 mm',
+      thickness: '1.3 mm',
+      ratio: '3.64 : 1 (Slender Medium)',
+      varietyType: 'Kolam Raw (Wada Kolam)',
+      origin: 'Wada, Maharashtra, India',
+    },
   },
   {
-    name: '1121 Basmati', tone: ['#fffdf5', '#f1e6c9', '#c4ad7c'], tint: '#efe4c8', length: 1, len: '8.3 mm', mm: 8.3, width: 1.9,
-    texture: 'Dry, separate, fluffy', aroma: 'Floral, nutty', aged: 'Aged 24 months',
-    note: 'The long, slender benchmark for biryani and pulao. Elongates up to 2.5x when cooked.',
-    meters: [['Length', 98], ['Fragrance', 92], ['Fluffiness', 90], ['Firmness', 62]],
-    pins: ['Tapered, needle-fine tip', 'Natural lengthwise groove', 'Pearl-white endosperm'],
-    price: '₹128', best: 'Biryani & pulao',
+    name: 'HMT Raw',
+    subname: 'Aromatic Short Slender',
+    tone: ['#fefcf3', '#f0e6cd', '#cbb382'],
+    tint: '#f3eedf',
+    length: 5.3 / 8.4,
+    len: '5.3 mm',
+    mm: 5.3,
+    width: 1.5,
+    thickness: 1.4,
+    texture: 'Tender bite, non-sticky and soft',
+    aroma: 'Subtle sweet grain fragrance',
+    aged: 'Aged 8 months in silos',
+    note: 'A celebrated short-slender aromatic grain bred in Maharashtra. Tender texture with subtle sweet aroma, widely favored for everyday balanced meals.',
+    meters: [
+      ['Fluffiness', 82],
+      ['Fragrance', 76],
+      ['Grain Separation', 80],
+      ['Softness & Bite', 88],
+    ],
+    pins: [
+      '5.3 mm length × 1.5 mm width × 1.4 mm thickness',
+      'Compact curved profile with soft apex',
+      'Quick cooking with excellent moisture retention',
+    ],
+    price: '₹84',
+    best: 'Everyday meals & Khichdi',
+    specs: {
+      length: '5.3 mm',
+      width: '1.5 mm',
+      thickness: '1.4 mm',
+      ratio: '3.53 : 1 (Short Slender)',
+      varietyType: 'HMT Raw Grain',
+      origin: 'Chandrapur, Maharashtra, India',
+    },
   },
   {
-    name: 'JMR Brand', tone: ['#fefbf1', '#ece1c4', '#b3a078'], tint: '#e8dfc6', length: 0.72, len: '6.6 mm', mm: 6.6, width: 2.2,
-    texture: 'Firm, non-sticky', aroma: 'Clean, neutral', aged: 'Aged 8 months',
-    note: 'Our dependable wholesale staple, consistent lot after lot, built for volume kitchens.',
-    meters: [['Length', 64], ['Fragrance', 36], ['Fluffiness', 68], ['Firmness', 84]],
-    pins: ['Blunt, sturdy tip', 'Shallow groove', 'Dense white core'],
-    price: '₹72', best: 'Volume kitchens',
+    name: 'Sona Masoori',
+    subname: 'Medium Slender Daily Rice',
+    tone: ['#ffffff', '#f4eddc', '#cfc19f'],
+    tint: '#f4f0e4',
+    length: 5.5 / 8.4,
+    len: '5.5 mm',
+    mm: 5.5,
+    width: 1.6,
+    thickness: 1.5,
+    texture: 'Light, fluffy, very low starch',
+    aroma: 'Clean, neutral and light',
+    aged: 'Aged 6 months',
+    note: 'Lightweight and easy to digest, a southern kitchen staple. Naturally low in starch, it cooks into separate, bouncy grains ideal for daily consumption.',
+    meters: [
+      ['Fluffiness', 88],
+      ['Fragrance', 52],
+      ['Grain Separation', 86],
+      ['Softness & Bite', 78],
+    ],
+    pins: [
+      '5.5 mm length × 1.6 mm width × 1.5 mm thickness',
+      'Rounded compact tip with translucent body',
+      'Low glycemic response, everyday digestibility',
+    ],
+    price: '₹72',
+    best: 'Daily meals & South Indian fare',
+    specs: {
+      length: '5.5 mm',
+      width: '1.6 mm',
+      thickness: '1.5 mm',
+      ratio: '3.44 : 1 (Medium Slender)',
+      varietyType: 'Sona Masoori Raw',
+      origin: 'Andhra Pradesh / Karnataka, India',
+    },
   },
   {
-    name: 'Sona Masoori', tone: ['#ffffff', '#f3ecda', '#cabb98'], tint: '#efe9dc', length: 0.6, len: '5.4 mm', mm: 5.4, width: 2.5,
-    texture: 'Light, medium-grain', aroma: 'Subtle, sweet', aged: 'Aged 6 months',
-    note: 'Lightweight and easy to digest, a southern kitchen favourite for daily meals.',
-    meters: [['Length', 48], ['Fragrance', 44], ['Fluffiness', 58], ['Firmness', 40]],
-    pins: ['Rounded, compact tip', 'Soft groove line', 'Translucent, light body'],
-    price: '₹58', best: 'Daily meals',
+    name: 'KNM Raw',
+    subname: 'Volume Kitchen Staple',
+    tone: ['#fdfaf0', '#ede1c4', '#c2ad7a'],
+    tint: '#ece6d4',
+    length: 6.2 / 8.4,
+    len: '6.2 mm',
+    mm: 6.2,
+    width: 1.8,
+    thickness: 1.6,
+    texture: 'Firm, high yield, separate',
+    aroma: 'Classic neutral cereal aroma',
+    aged: 'Aged 8 months',
+    note: 'Dependable, high-resilience grain developed by agricultural research for volume hospitality. Consistent kernel integrity through bulk steaming.',
+    meters: [
+      ['Fluffiness', 74],
+      ['Fragrance', 40],
+      ['Grain Separation', 90],
+      ['Softness & Bite', 84],
+    ],
+    pins: [
+      '6.2 mm length × 1.8 mm width × 1.6 mm thickness',
+      'Sturdy blunt tip with dense endosperm',
+      'Exceptional expansion and steam tolerance',
+    ],
+    price: '₹64',
+    best: 'Volume kitchens & Catering',
+    specs: {
+      length: '6.2 mm',
+      width: '1.8 mm',
+      thickness: '1.6 mm',
+      ratio: '3.44 : 1 (Medium Long)',
+      varietyType: 'KNM Raw Grain',
+      origin: 'Telangana, India',
+    },
+  },
+  {
+    name: '1121 Basmati',
+    subname: 'Extra Long Slender Royal Grain',
+    tone: ['#fffdf5', '#f1e6c9', '#c4ad7c'],
+    tint: '#efe4c8',
+    length: 8.4 / 8.4,
+    len: '8.4 mm',
+    mm: 8.4,
+    width: 1.5,
+    thickness: 1.3,
+    texture: 'Regal, dry, elongates up to 2.5x',
+    aroma: 'Rich floral, nutty 2-AP aroma',
+    aged: 'Aged 24 months in wooden silos',
+    note: 'The global benchmark for royal biryanis and banquets. Renowned for supreme length, needle-fine tips, and up to 2.5x post-cooking elongation without bursting.',
+    meters: [
+      ['Fluffiness', 94],
+      ['Fragrance', 96],
+      ['Grain Separation', 98],
+      ['Softness & Bite', 64],
+    ],
+    pins: [
+      '8.4 mm length × 1.5 mm width × 1.3 mm thickness',
+      'Tapered needle apex with longitudinal dorsal groove',
+      'Pearl-white vitreous endosperm aged 24 months',
+    ],
+    price: '₹135',
+    best: 'Royal Biryani & Banquets',
+    specs: {
+      length: '8.4 mm',
+      width: '1.5 mm',
+      thickness: '1.3 mm',
+      ratio: '5.60 : 1 (Extra Long Slender)',
+      varietyType: 'Pusa 1121 Basmati',
+      origin: 'Karnal, Haryana, India',
+    },
   },
 ]
 
-export const MAX_MM = 8.3
+export const MAX_MM = 8.4

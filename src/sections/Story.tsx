@@ -249,68 +249,105 @@ function Explore({ p, sel, setSel }: { p: number; sel: number; setSel: (n: numbe
       <div className="relative mx-auto grid h-full max-w-6xl grid-rows-[auto_minmax(0,1fr)_auto] gap-2 px-6 pb-5 pt-20 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.35fr)] md:grid-rows-[minmax(0,1fr)_auto] md:gap-x-10 md:px-12 md:pb-8 md:pt-24">
         <div className="min-w-0 md:self-center" style={{ opacity: ui, transform: `translate3d(0, ${(1 - ui) * 30}px, 0)` }}>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <Label>Scene 03 · Explore the Grain</Label>
+            <Label>Scene 03 · Anatomy of the Grain</Label>
             <span className="h-px w-8 bg-earth/25" />
             <span className="whitespace-nowrap text-[11px] tabular-nums tracking-[0.2em] text-earth/55">0{sel + 1} / 0{VARIETIES.length}</span>
           </div>
-          <h2 key={v.name} className="rise mt-3 text-[clamp(2rem,5vw,4rem)] font-light leading-[1.02] tracking-tight">{v.name}</h2>
-          <p key={v.note} className="rise mt-2 max-w-sm text-sm leading-relaxed text-earth/70 md:text-base" style={{ animationDelay: '.08s' }}>{v.note}</p>
+          <h2 key={v.name} className="rise mt-3 text-[clamp(2.2rem,5vw,3.8rem)] font-light leading-[1.02] tracking-tight">{v.name}</h2>
+          <p key={v.note} className="rise mt-2 max-w-sm text-sm leading-relaxed text-earth/75 md:text-base" style={{ animationDelay: '.08s' }}>{v.note}</p>
 
-          <div className="mt-6 hidden md:block">
-            <div className="mb-3 text-[10px] uppercase tracking-[0.25em] text-earth/50">Length, drawn to scale</div>
-            <div className="space-y-2.5">
+          <div className="mt-4">
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-earth/60">
+              Select Variety to Inspect ({VARIETIES.length} Available)
+            </div>
+            <div className="space-y-1.5 max-w-sm">
               {VARIETIES.map((x, i) => (
-                <button key={x.name} onClick={() => setSel(i)} className="group flex min-h-[28px] w-full items-center gap-3 text-left" aria-label={`Select ${x.name}`}>
-                  <span className="w-24 shrink-0 text-xs text-earth/60 transition-colors group-hover:text-earth">{x.name}</span>
-                  <span className="relative h-[3px] flex-1 rounded-full bg-earth/10">
-                    <span className={`absolute inset-y-0 left-0 rounded-full transition-all duration-700 ${i === sel ? 'bg-paddy' : 'bg-earth/35 group-hover:bg-earth/55'}`} style={{ width: `${(x.mm / MAX_MM) * 100}%`, height: i === sel ? 5 : 3, top: i === sel ? -1 : 0 }} />
+                <button
+                  key={x.name}
+                  onClick={() => setSel(i)}
+                  className={`group flex min-h-[32px] w-full items-center gap-3 rounded-lg border px-3 py-1.5 text-left transition-all ${
+                    i === sel
+                      ? 'border-earth bg-earth text-rice shadow-sm'
+                      : 'border-earth/15 bg-earth/[0.02] text-earth hover:border-earth/40 hover:bg-earth/5'
+                  }`}
+                  aria-label={`Select ${x.name}`}
+                >
+                  <span className="w-24 shrink-0 text-xs font-medium">{x.name}</span>
+                  <span className="relative h-[4px] flex-1 rounded-full bg-black/10">
+                    <span
+                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${
+                        i === sel ? 'bg-gold' : 'bg-earth/40 group-hover:bg-earth/70'
+                      }`}
+                      style={{ width: `${(x.mm / MAX_MM) * 100}%` }}
+                    />
                   </span>
-                  <span className="w-12 shrink-0 text-right text-xs tabular-nums text-earth/60">{x.len}</span>
+                  <span className="w-14 shrink-0 text-right text-xs tabular-nums opacity-75">{x.len}</span>
                 </button>
               ))}
+            </div>
+
+            <div className="mt-3.5">
+              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.25em] text-earth/60">
+                {v.name} Base Geometry (Reference Dimensions)
+              </div>
+              <div className="grid max-w-sm grid-cols-3 gap-2">
+                <div className="rounded-lg border border-earth/20 bg-earth/[0.04] p-2 text-center">
+                  <span className="block text-[9px] uppercase tracking-wider text-earth/50">Length</span>
+                  <span className="font-serif text-base font-medium text-earth">{v.len}</span>
+                </div>
+                <div className="rounded-lg border border-earth/20 bg-earth/[0.04] p-2 text-center">
+                  <span className="block text-[9px] uppercase tracking-wider text-earth/50">Width</span>
+                  <span className="font-serif text-base font-medium text-earth">{v.width} mm</span>
+                </div>
+                <div className="rounded-lg border border-earth/20 bg-earth/[0.04] p-2 text-center">
+                  <span className="block text-[9px] uppercase tracking-wider text-earth/50">Thickness</span>
+                  <span className="font-serif text-base font-medium text-earth">{v.thickness} mm</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="relative min-h-0 min-w-0" role="img" aria-label={`${v.name} rice grain in 3D. Drag to rotate.`}>
           <div className="absolute inset-0" style={{ transform: `scale(${scale})`, filter: `blur(${blur}px)`, opacity: 1 - s(p, 0.66, 0.705) }}>
-            <GrainViewer mm={v.mm} width={v.width} color={v.tone[0]} active={active} onTouch={() => setTouched(true)} />
+            <GrainViewer mm={v.mm} width={v.width} thickness={v.thickness} color={v.tone[0]} active={active} onTouch={() => setTouched(true)} />
           </div>
 
           <div className="pointer-events-none absolute inset-x-0 bottom-[2%] flex flex-col items-center" style={{ opacity: ui * (1 - seg(p, 0.6, 0.62)) }}>
-            <div className="relative h-3 transition-[width] duration-1000 ease-out" style={{ width: `${(v.mm / MAX_MM) * 80}%` }}>
+            <div className="relative h-3 w-48">
               <span className="absolute inset-x-0 top-1/2 h-px bg-earth/35" />
               <span className="absolute left-0 top-0 h-full w-px bg-earth/50" />
               <span className="absolute right-0 top-0 h-full w-px bg-earth/50" />
             </div>
-            <span className="mt-1 text-[11px] tabular-nums tracking-[0.2em] text-earth/65">{v.len} · avg. raw length</span>
+            <span className="mt-1 text-[11px] tabular-nums tracking-[0.2em] text-earth/70">{v.len} Length × {v.width} mm Width × {v.thickness} mm Thickness</span>
           </div>
 
           <div className="pointer-events-none absolute right-0 top-3 flex items-center gap-2 whitespace-nowrap text-[10px] uppercase tracking-[0.3em] text-earth/50 transition-opacity duration-500" style={{ opacity: touched ? 0 : ui }}>
-            <span className="nudge inline-block">⟷</span> Drag to inspect
+            <span className="nudge inline-block">⟷</span> Drag to inspect in 3D
           </div>
         </div>
 
         <div className="min-w-0 md:col-span-2" style={{ opacity: ui, transform: `translate3d(0, ${(1 - ui) * 40}px, 0)` }}>
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-earth/15 pt-4 text-sm md:grid-cols-4">
-            {[['Grain length', v.len], ['Texture', v.texture], ['Aroma', v.aroma], ['Ageing', v.aged]].map(([k, val]) => (
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-2 border-t border-earth/15 pt-3 text-sm md:grid-cols-4">
+            {[['Variety Type', v.specs.varietyType], ['Grain Texture', v.texture.split('(')[0].trim()], ['Aroma Profile', v.aroma], ['Ageing Process', v.aged]].map(([k, val]) => (
               <div key={k}>
                 <dt className="text-[10px] uppercase tracking-[0.25em] text-earth/50">{k}</dt>
-                <dd key={val} className="rise mt-0.5 font-medium">{val}</dd>
+                <dd key={val} className="rise mt-0.5 font-medium text-earth">{val}</dd>
               </div>
             ))}
           </dl>
-          <div className="no-scrollbar -mx-6 mt-4 flex w-[calc(100%+3rem)] min-w-0 gap-2 overflow-x-auto px-6 md:mx-0 md:grid md:w-full md:grid-cols-4 md:px-0" role="tablist" aria-label="Rice variety" onKeyDown={onKey}>
+          <div className="no-scrollbar -mx-6 mt-3.5 flex w-[calc(100%+3rem)] min-w-0 gap-2 overflow-x-auto px-6 md:mx-0 md:grid md:w-full md:grid-cols-5 md:px-0" role="tablist" aria-label="Rice variety" onKeyDown={onKey}>
             {VARIETIES.map((x, i) => (
               <button
                 key={x.name} role="tab" aria-selected={i === sel} tabIndex={i === sel ? 0 : -1}
                 onClick={() => setSel(i)}
-                className={`group relative flex min-h-[44px] shrink-0 items-center gap-3 overflow-hidden rounded-full border px-4 py-3 text-left text-sm transition-all duration-500 md:justify-center ${
+                className={`group relative flex min-h-[44px] shrink-0 items-center gap-2.5 overflow-hidden rounded-full border px-3 py-2.5 text-left text-xs transition-all duration-500 md:justify-center ${
                   i === sel ? 'border-earth bg-earth text-rice shadow-lg shadow-earth/20' : 'border-earth/20 text-earth/80 hover:border-earth/55 hover:bg-rice/60'
                 }`}
               >
-                <span className="h-2.5 shrink-0 rounded-[50%] transition-transform duration-500 group-hover:scale-110" style={{ width: 10 + (x.mm / MAX_MM) * 18, background: `linear-gradient(${x.tone[0]}, ${x.tone[2]})`, border: '1px solid rgba(0,0,0,.12)' }} />
-                <span className="whitespace-nowrap">{x.name}</span>
+                <span className="h-2 shrink-0 rounded-[50%] transition-transform duration-500 group-hover:scale-110" style={{ width: 8 + (x.mm / MAX_MM) * 16, background: `linear-gradient(${x.tone[0]}, ${x.tone[2]})`, border: '1px solid rgba(0,0,0,.12)' }} />
+                <span className="whitespace-nowrap font-medium">{x.name}</span>
+                <span className="text-[10px] opacity-60">({x.len})</span>
               </button>
             ))}
           </div>
@@ -414,9 +451,10 @@ function Processing({ p, sel }: { p: number; sel: number }) {
   )
 }
 
-/* ---------- Scene 5 : cinematic reveal ---------- */
-function Final({ p, sel }: { p: number; sel: number }) {
-  const v = VARIETIES[sel]
+/* ---------- Scene 5 : cinematic reveal (Keshar Kali flagship bag) ---------- */
+function Final({ p }: { p: number; sel: number }) {
+  // Flagship 3D packaging is exclusively Keshar Kali as requested
+  const kesharkali = VARIETIES[0]
   const t = seg(p, 0.885, 0.99)
   const o = s(p, 0.885, 0.91)
   const info = s(t, 0.62, 0.86)
@@ -432,23 +470,26 @@ function Final({ p, sel }: { p: number; sel: number }) {
   return (
     <div className="absolute inset-0" style={{ ...layer(o), background: 'linear-gradient(180deg, #f0e7d2 0%, #e6dabf 55%, #d6c6a2 100%)' }}>
       <div className="absolute inset-x-0 top-0 h-[54%] md:inset-y-0 md:h-full">
-        <FinalScene t={t} visible={o > 0.005} mm={v.mm} width={v.width} name={v.name} shift={wide ? 0.21 : 0} />
+        <FinalScene t={t} visible={o > 0.005} mm={kesharkali.mm} width={kesharkali.width} name="Keshar Kali" shift={wide ? 0.21 : 0} />
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[46%] flex-col justify-center px-6 pb-5 md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-[38%] md:justify-center md:px-0 md:pr-14 md:pb-0">
         <div className="pointer-events-auto">
-          <div style={rise(1, 0)}><Label>The Final Product</Label></div>
-          <h2 className="mt-2 text-[clamp(2rem,4.6vw,3.6rem)] font-light leading-[1.02] tracking-tight" style={rise(1, 0.1)}>{v.name}</h2>
-          <p className="mt-2 max-w-sm text-sm text-earth/75 md:mt-4 md:text-base" style={rise(1, 0.2)}>{v.note}</p>
-          <dl className="mt-4 grid max-w-sm grid-cols-3 gap-x-4 border-t border-earth/15 pt-3 text-sm md:mt-7 md:pt-4" style={rise(1, 0.3)}>
-            {[['Length', v.len], ['Texture', v.texture.split(',')[0]], ['Packing', '5–50 kg']].map(([k, val]) => (
+          <div style={rise(1, 0)}><Label>The Final Product · Flagship Packaging</Label></div>
+          <h2 className="mt-2 text-[clamp(2.2rem,5vw,4.2rem)] font-light leading-[1.02] tracking-tight" style={rise(1, 0.1)}>Keshar Kali</h2>
+          <p className="mt-1 font-serif text-base italic text-[#b8860b] md:text-lg" style={rise(1, 0.15)}>Premium Wada Kolam Rice · Khila Khila Dana</p>
+          <p className="mt-2 max-w-sm text-sm text-earth/75 md:mt-3 md:text-base" style={rise(1, 0.2)}>
+            Authentic export packaging: high-barrier laminated BOPP sack, stitched white crepe band, red chain thread, and golden side gussets.
+          </p>
+          <dl className="mt-4 grid max-w-sm grid-cols-3 gap-x-4 border-t border-earth/15 pt-3 text-sm md:mt-6 md:pt-4" style={rise(1, 0.3)}>
+            {[['Length', kesharkali.len], ['Texture', 'Fluffy & Separate'], ['Packing', '30 kg & 26 kg']].map(([k, val]) => (
               <div key={k}>
                 <dt className="text-[10px] uppercase tracking-[0.22em] text-earth/50">{k}</dt>
                 <dd className="mt-0.5 font-medium">{val}</dd>
               </div>
             ))}
           </dl>
-          <div className="mt-4 grid max-w-sm grid-cols-2 gap-2 md:mt-7 md:gap-3" style={rise(1, 0.4)}>
+          <div className="mt-4 grid max-w-sm grid-cols-2 gap-2 md:mt-6 md:gap-3" style={rise(1, 0.4)}>
             <a href="#products" className="rounded-full bg-earth px-4 py-3.5 text-center text-sm font-medium text-rice transition hover:bg-paddy">Explore Products</a>
             <a href="#quote" className="rounded-full border border-earth/40 px-4 py-3.5 text-center text-sm font-medium transition hover:border-earth hover:bg-earth/5">Request a Quote</a>
           </div>

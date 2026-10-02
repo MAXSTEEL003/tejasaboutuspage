@@ -1,12 +1,12 @@
 const WORDS = [
-  '1121 Basmati',
   'Keshar Kali',
-  'JMR Brand',
-  'Sona Masoori',
-  'Aged with patience',
-  'Sorted by light',
-  'Milled in small lots',
-  'From our growers',
+  'Premium Wada Kolam',
+  'Khila Khila Dana',
+  '5.1 mm Slender Grain',
+  'Sortex Optical Cleaned',
+  'Aged with Patience',
+  'Natural Vitreous Luster',
+  'From Trusted Growers',
 ]
 
 function GrainMark() {
