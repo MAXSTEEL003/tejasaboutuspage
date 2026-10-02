@@ -8,7 +8,7 @@ const U = (id: string, w = 1800) =>
   `https://images.unsplash.com/photo-${id}?w=${w}&fit=crop&auto=format&q=80`
 const IMG = {
   farm: U('1728895604559-a4e16081504e', 2200),
-  hand: U('1711060221380-acfa2c82cc99', 2200),
+  hand: U('1714830562201-c0d1fe06ac9d', 2200),
   scoop: U('1711060266983-92bd378c850c'),
   sack: U('1645331465778-eb409d112198'),
   pile: U('1686820740687-426a7b9b2043'),
@@ -197,7 +197,7 @@ function Harvest({ p }: { p: number }) {
   return (
     <div className="absolute inset-0 bg-earth" style={layer(o)}>
       <img
-        src={IMG.hand} alt="Hands holding freshly harvested grain"
+        src={IMG.hand} alt="Golden basmati paddy field at sunset harvest"
         className="absolute inset-0 h-full w-full object-cover will-change-transform"
         style={{ transform: `scale(${M ? z : 1})`, transformOrigin: '50% 56%', filter: `blur(${(1 - arrive) * 10 * M}px)` }}
       />
