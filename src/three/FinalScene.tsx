@@ -735,43 +735,57 @@ function buildInstances(): Inst[] {
   const out: Inst[] = []
   const { R, H } = BOWL
   const topY = 0.07 + H
-  const RR = R - 0.14
+  const RR = R - 0.12
   const mk = (rest: THREE.Vector3, rot: THREE.Vector3, sc = 1) => {
     out.push({
       rest,
       rot,
       sc,
       start: new THREE.Vector3(rest.x + (r() - 0.5) * 9, rest.y + 5 + r() * 7, rest.z + 1.5 + r() * 4),
-      spin: new THREE.Vector3((r() - 0.5) * 12, (r() - 0.5) * 12, (r() - 0.5) * 12),
+      spin: new THREE.Vector3((r() - 0.5) * 8, (r() - 0.5) * 8, (r() - 0.5) * 8),
       a: r(),
     })
   }
-  for (let i = 0; i < 900; i++) {
+
+  // 1. Natural interlocking mound in the bowl (grains settle horizontally under gravity)
+  for (let i = 0; i < 920; i++) {
     const rad = RR * Math.sqrt(r())
     const ang = r() * Math.PI * 2
-    const surf = topY + 0.02 + 0.26 * (1 - (rad / RR) ** 2)
-    const y = surf - r() * r() * 0.16
-    mk(new THREE.Vector3(BOWL.x + Math.cos(ang) * rad, y, BOWL.z + Math.sin(ang) * rad), new THREE.Vector3((r() - 0.5) * 0.9, r() * Math.PI * 2, (r() - 0.5) * 0.9))
+    const dome = Math.pow(Math.max(0, 1 - (rad / RR) ** 1.8), 0.75)
+    const surf = topY + 0.02 + 0.34 * dome
+    const y = surf - r() * r() * 0.12
+    // Grains settle predominantly flat horizontally with subtle interlocking angle variation
+    const rot = new THREE.Vector3((r() - 0.5) * 0.24, r() * Math.PI * 2, (r() - 0.5) * 0.24)
+    const sc = 0.92 + r() * 0.16
+    mk(new THREE.Vector3(BOWL.x + Math.cos(ang) * rad, y, BOWL.z + Math.sin(ang) * rad), rot, sc)
   }
+
+  // 2. Realistic spilled grain pile and perimeter fan on the surface
   let placed = 0
-  while (placed < 420) {
-    const spill = r() < 0.45
+  while (placed < 460) {
+    const spill = r() < 0.5
     let x: number
     let z: number
+    let y = 0.032
     if (spill) {
       const u = r()
-      x = BOWL.x - 1.0 - u * 2.2 + (r() - 0.5) * 0.7 * (0.4 + u)
-      z = BOWL.z + 0.5 + Math.sin(u * 2.4) * 0.6 + (r() - 0.5) * 0.9 * (0.3 + u)
+      x = BOWL.x - 1.0 - u * 2.2 + (r() - 0.5) * 0.7 * (0.3 + u)
+      z = BOWL.z + 0.5 + Math.sin(u * 2.4) * 0.6 + (r() - 0.5) * 0.8 * (0.2 + u)
+      y = 0.03 + (1 - u) * 0.08 * (r() * 0.6 + 0.4) // thicker mound near bowl edge
     } else {
       const a = r() * Math.PI * 2
-      const d = 1.25 + Math.abs(r() + r() - 1) * 1.4
+      const d = 1.22 + Math.abs(r() + r() - 1) * 1.3
       x = BOWL.x + Math.cos(a) * d
       z = BOWL.z + Math.sin(a) * d * 0.8
     }
-    if (Math.hypot(x - BOWL.x, z - BOWL.z) < 1.3) continue
+    if (Math.hypot(x - BOWL.x, z - BOWL.z) < 1.25) continue
     if (Math.abs(x + 1.35) < 1.5 && z < 0.4) continue
     if (z > 3.2 || z < -0.6) continue
-    mk(new THREE.Vector3(x, 0.04, z), new THREE.Vector3((r() - 0.5) * 0.25, r() * Math.PI * 2, (r() - 0.5) * 0.25))
+
+    // Spilled grains lie flat against the ground
+    const rot = new THREE.Vector3((r() - 0.5) * 0.12, r() * Math.PI * 2, (r() - 0.5) * 0.12)
+    const sc = 0.92 + r() * 0.16
+    mk(new THREE.Vector3(x, y, z), rot, sc)
     placed++
   }
   return out
@@ -849,6 +863,22 @@ export default function FinalScene(props: Props) {
     riceMesh.castShadow = true
     riceMesh.receiveShadow = true
     riceMesh.frustumCulled = false
+
+    // Natural tone variations across individual grains in the pile
+    const toneRand = rng(882)
+    const cVar = new THREE.Color()
+    for (let i = 0; i < insts.length; i++) {
+      const v = toneRand()
+      if (v < 0.22) {
+        cVar.set('#ffffff') // pure chalky white
+      } else if (v < 0.82) {
+        cVar.set('#fdf9f0') // pearlescent translucent white
+      } else {
+        cVar.set('#f7eedb') // aged golden-cream grain
+      }
+      riceMesh.setColorAt(i, cVar)
+    }
+    riceMesh.instanceColor!.needsUpdate = true
     scene.add(riceMesh)
 
     const cam0 = new THREE.Vector3(1.2, 1.3, 4.2)
@@ -871,6 +901,12 @@ export default function FinalScene(props: Props) {
     const curtainMesh = new THREE.InstancedMesh(geo, mat, curtain.length)
     curtainMesh.castShadow = false
     curtainMesh.frustumCulled = false
+    for (let i = 0; i < curtain.length; i++) {
+      const v = toneRand()
+      cVar.set(v < 0.22 ? '#ffffff' : v < 0.82 ? '#fdf9f0' : '#f7eedb')
+      curtainMesh.setColorAt(i, cVar)
+    }
+    curtainMesh.instanceColor!.needsUpdate = true
     scene.add(curtainMesh)
 
     const fov = 28
@@ -919,7 +955,7 @@ export default function FinalScene(props: Props) {
         )
         dummy.rotation.set(n.rot.x + n.spin.x * inv, n.rot.y + n.spin.y * inv, n.rot.z + n.spin.z * inv)
         if (n.rest.y < 0.1) dummy.position.y = Math.max(dummy.position.y, Tg * 0.42)
-        dummy.scale.set(Lg, Tg, Tg)
+        dummy.scale.set(Lg * n.sc, Tg * n.sc, Tg * n.sc)
         dummy.updateMatrix()
         riceMesh.setMatrixAt(i, dummy.matrix)
       }
