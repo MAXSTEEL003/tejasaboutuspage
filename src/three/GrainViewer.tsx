@@ -34,20 +34,51 @@ export default function GrainViewer(props: Props) {
     const scene = new THREE.Scene()
     const pm = new THREE.PMREMGenerator(renderer)
     scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture
-    scene.environmentIntensity = 0.75
+    scene.environmentIntensity = 0.95
 
-    const key = new THREE.DirectionalLight('#fff0d6', 2.4)
-    key.position.set(-4, 5, 6)
-    const rim = new THREE.DirectionalLight('#dbe6c2', 1.2)
-    rim.position.set(5, 1, -4)
-    scene.add(key, rim)
+    // Lighting specifically tuned for translucent organic materials
+    const key = new THREE.DirectionalLight('#fff6e6', 2.8)
+    key.position.set(-4, 5, 5)
+    
+    // Backlight: shines directly THROUGH the grain towards the camera to illuminate the translucent volume
+    const backlight = new THREE.DirectionalLight('#ffffff', 3.4)
+    backlight.position.set(1, 2, -6)
+    
+    const rim = new THREE.DirectionalLight('#e8f2ff', 1.8)
+    rim.position.set(5, 1, -3)
+    
+    const fill = new THREE.DirectionalLight('#faf4ea', 1.2)
+    fill.position.set(0, -3, 3)
+    
+    const ambient = new THREE.AmbientLight('#ffffff', 0.7)
+    scene.add(key, backlight, rim, fill, ambient)
 
     const fov = 14
     const camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 100)
-    const geo = makeGrainGeometry()
-    const mat = makeGrainMaterial()
+    
+    // Outer translucent vitreous hull
+    const geo = makeGrainGeometry(false)
+    const mat = makeGrainMaterial({
+      transmission: 0.82,
+      thickness: 1.6,
+      roughness: 0.18,
+      ior: 1.51,
+    })
     const mesh = new THREE.Mesh(geo, mat)
+
+    // Inner chalky starchy core (gives deep translucent realism seen in real rice photos)
+    const coreGeo = makeGrainGeometry(true)
+    const coreMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#faf7f0'),
+      roughness: 0.7,
+      metalness: 0.0,
+      transparent: true,
+      opacity: 0.82,
+    })
+    const coreMesh = new THREE.Mesh(coreGeo, coreMat)
+
     const group = new THREE.Group()
+    group.add(coreMesh)
     group.add(mesh)
     scene.add(group)
 
@@ -103,6 +134,7 @@ export default function GrainViewer(props: Props) {
       }
       const bump = 1 + k.pulse * 0.06
       mesh.scale.set(cur.L * bump, cur.T * bump, cur.T * bump)
+      coreMesh.scale.set(cur.L * bump, cur.T * bump, cur.T * bump)
       group.rotation.set(k.roll, k.yaw, -0.12, 'ZYX')
       renderer.render(scene, camera)
 
@@ -121,6 +153,8 @@ export default function GrainViewer(props: Props) {
       ro.disconnect()
       geo.dispose()
       mat.dispose()
+      coreGeo.dispose()
+      coreMat.dispose()
       pm.dispose()
       renderer.dispose()
     }
