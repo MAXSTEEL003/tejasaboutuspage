@@ -18,20 +18,20 @@ export type Variety = {
 
 export const VARIETIES: Variety[] = [
   {
+    name: 'Keshar Kali', tone: ['#fff7e0', '#efdba8', '#bb9a5c'], tint: '#f1dfb0', length: 0.86, len: '7.4 mm', mm: 7.4, width: 2.1,
+    texture: 'Separate, soft & fluffy', aroma: 'Mild floral, delicate', aged: 'Aged 12 months',
+    note: 'Premium Wada Kolam special: silky slender grains that cook up fragrant, tender, and distinct ("Khila Khila Dana").',
+    meters: [['Length', 84], ['Fragrance', 78], ['Fluffiness', 92], ['Firmness', 60]],
+    pins: ['Soft golden blush', 'Delicate natural groove', 'Khila Khila separate grains'],
+    price: '₹96', best: 'Daily meals & Festive cooking',
+  },
+  {
     name: '1121 Basmati', tone: ['#fffdf5', '#f1e6c9', '#c4ad7c'], tint: '#efe4c8', length: 1, len: '8.3 mm', mm: 8.3, width: 1.9,
     texture: 'Dry, separate, fluffy', aroma: 'Floral, nutty', aged: 'Aged 24 months',
     note: 'The long, slender benchmark for biryani and pulao. Elongates up to 2.5x when cooked.',
     meters: [['Length', 98], ['Fragrance', 92], ['Fluffiness', 90], ['Firmness', 62]],
     pins: ['Tapered, needle-fine tip', 'Natural lengthwise groove', 'Pearl-white endosperm'],
     price: '₹128', best: 'Biryani & pulao',
-  },
-  {
-    name: 'Keshar Kali', tone: ['#fff7e0', '#efdba8', '#bb9a5c'], tint: '#f1dfb0', length: 0.86, len: '7.4 mm', mm: 7.4, width: 2.1,
-    texture: 'Soft, tender', aroma: 'Saffron-warm, mild', aged: 'Aged 12 months',
-    note: 'A golden-tinged grain with a gentle, everyday fragrance and a tender bite.',
-    meters: [['Length', 80], ['Fragrance', 70], ['Fluffiness', 76], ['Firmness', 48]],
-    pins: ['Soft golden blush', 'Fine surface groove', 'Creamy endosperm'],
-    price: '₹96', best: 'Festive cooking',
   },
   {
     name: 'JMR Brand', tone: ['#fefbf1', '#ece1c4', '#b3a078'], tint: '#e8dfc6', length: 0.72, len: '6.6 mm', mm: 6.6, width: 2.2,

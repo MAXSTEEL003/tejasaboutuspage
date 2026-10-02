@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { makeGrainGeometry, makeGrainMaterial } from './grain'
+import { KESHAR_KALI_BAG_IMAGE } from './kesharKaliBagData'
 
 type Props = { t: number; visible: boolean; mm: number; width: number; name: string; shift: number }
 
@@ -71,39 +72,57 @@ function makeWovenSackBumpTexture(repeatX = 36, repeatY = 54): THREE.CanvasTextu
   return tex
 }
 
-/* ---------- stitched tape texture ---------- */
+/* ---------- Keshar Kali image loader ---------- */
+let cachedBagImg: HTMLImageElement | null = null
+function getKesharBagImage(onLoad?: () => void): HTMLImageElement | null {
+  if (typeof window === 'undefined') return null
+  if (!cachedBagImg) {
+    cachedBagImg = new Image()
+    if (onLoad) cachedBagImg.onload = onLoad
+    cachedBagImg.src = KESHAR_KALI_BAG_IMAGE
+  } else if (onLoad && !cachedBagImg.complete) {
+    const prev = cachedBagImg.onload
+    cachedBagImg.onload = (e) => {
+      if (prev) (prev as (ev: Event) => void)(e)
+      onLoad()
+    }
+  }
+  return cachedBagImg
+}
+
+/* ---------- stitched tape texture (white crepe + red thread) ---------- */
 function makeStitchedTapeTexture(): THREE.CanvasTexture {
   const cv = document.createElement('canvas')
   cv.width = 512
   cv.height = 64
   const ctx = cv.getContext('2d')!
 
-  // Heavy woven crepe tape (olive-forest)
-  ctx.fillStyle = '#3a4a2b'
+  // Heavy woven crepe paper tape (cream-white)
+  ctx.fillStyle = '#fcf8ee'
   ctx.fillRect(0, 0, 512, 64)
 
   // Paper/crepe texture lines
-  ctx.fillStyle = 'rgba(255,255,255,0.08)'
+  ctx.fillStyle = 'rgba(0,0,0,0.04)'
   for (let x = 0; x < 512; x += 3) {
     ctx.fillRect(x, 0, 1, 64)
   }
 
-  // Top and bottom stitch border
+  // Top and bottom gold accent border
   ctx.fillStyle = '#d4af37'
-  ctx.fillRect(0, 2, 512, 2)
-  ctx.fillRect(0, 60, 512, 2)
+  ctx.fillRect(0, 0, 512, 3)
+  ctx.fillRect(0, 61, 512, 3)
 
-  // Industrial chain stitch (thick cream yarn)
+  // Industrial chain stitch (vibrant red yarn)
   const stitchStep = 18
   for (let x = 6; x < 512; x += stitchStep) {
     // Needle perforation hole
-    ctx.fillStyle = '#1c2414'
+    ctx.fillStyle = '#5c0d16'
     ctx.beginPath()
     ctx.arc(x + 2, 32, 2.5, 0, Math.PI * 2)
     ctx.fill()
 
-    // Thick white/cream yarn segment
-    ctx.strokeStyle = '#fffcee'
+    // Thick red yarn segment
+    ctx.strokeStyle = '#c91e25'
     ctx.lineWidth = 3.5
     ctx.lineCap = 'round'
     ctx.beginPath()
@@ -112,7 +131,7 @@ function makeStitchedTapeTexture(): THREE.CanvasTexture {
     ctx.stroke()
 
     // Shadow under stitch
-    ctx.strokeStyle = 'rgba(0,0,0,0.35)'
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)'
     ctx.lineWidth = 1.5
     ctx.beginPath()
     ctx.moveTo(x - 4, 33)
@@ -127,380 +146,332 @@ function makeStitchedTapeTexture(): THREE.CanvasTexture {
   return tex
 }
 
-/* ---------- realistic wholesale bag artwork ---------- */
-function drawBag(cv: HTMLCanvasElement, name: string, front: boolean) {
+/* ---------- realistic Keshar Kali bag artwork ---------- */
+function drawBag(cv: HTMLCanvasElement, _name: string, front: boolean, onImgLoad?: () => void) {
   const ctx = cv.getContext('2d')!
   const W = cv.width
   const H = cv.height
 
   ctx.clearRect(0, 0, W, H)
 
-  // 1. Natural woven polypropylene / jute fabric base
-  const bgGrad = ctx.createLinearGradient(0, 0, W, 0)
-  bgGrad.addColorStop(0, '#eadfc7')
-  bgGrad.addColorStop(0.08, '#f5edd9')
-  bgGrad.addColorStop(0.5, '#fbf6ea')
-  bgGrad.addColorStop(0.92, '#f5edd9')
-  bgGrad.addColorStop(1, '#e5d9bf')
-  ctx.fillStyle = bgGrad
-  ctx.fillRect(0, 0, W, H)
-
-  // Subtle woven grid lines on fabric
-  ctx.fillStyle = 'rgba(74, 56, 36, 0.035)'
-  for (let y = 0; y < H; y += 6) ctx.fillRect(0, y, W, 1)
-  for (let x = 0; x < W; x += 6) ctx.fillRect(x, 0, 1, H)
-
-  // Vignette shading along outer edges (simulating round cylindrical sack)
-  const edgeVig = ctx.createLinearGradient(0, 0, W, 0)
-  edgeVig.addColorStop(0, 'rgba(40, 28, 18, 0.15)')
-  edgeVig.addColorStop(0.08, 'rgba(40, 28, 18, 0.0)')
-  edgeVig.addColorStop(0.92, 'rgba(40, 28, 18, 0.0)')
-  edgeVig.addColorStop(1, 'rgba(40, 28, 18, 0.18)')
-  ctx.fillStyle = edgeVig
-  ctx.fillRect(0, 0, W, H)
-
-  const forest = '#2e3d23'
-  const gold = '#c49a38'
-  const darkEarth = '#241a12'
-  const deepRed = '#8c2828'
-
-  // Top sewn crepe band
-  ctx.fillStyle = forest
-  ctx.fillRect(0, 0, W, H * 0.085)
-  // Gold accent lines
-  ctx.fillStyle = gold
-  ctx.fillRect(0, H * 0.082, W, 4)
-  ctx.fillRect(0, H * 0.015, W, 2)
-
-  // Top tape text banner
-  ctx.fillStyle = '#fffdf5'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.font = '600 24px Manrope, sans-serif'
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '10px'
-  ctx.fillText('★ 100% PURE AGED BASMATI ★ EXTRA LONG GRAIN ★ EXPORT QUALITY ★', W / 2, H * 0.048)
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
-
-  // Top stitch line
-  ctx.strokeStyle = 'rgba(255, 252, 238, 0.85)'
-  ctx.lineWidth = 3
-  ctx.setLineDash([14, 10])
-  ctx.beginPath()
-  ctx.moveTo(0, H * 0.072)
-  ctx.lineTo(W, H * 0.072)
-  ctx.stroke()
-  ctx.setLineDash([])
-
-  // Bottom folded reinforced hem
-  ctx.fillStyle = forest
-  ctx.fillRect(0, H * 0.94, W, H * 0.06)
-  ctx.fillStyle = gold
-  ctx.fillRect(0, H * 0.938, W, 3)
-  ctx.strokeStyle = 'rgba(255, 252, 238, 0.85)'
-  ctx.lineWidth = 3
-  ctx.setLineDash([14, 10])
-  ctx.beginPath()
-  ctx.moveTo(0, H * 0.958)
-  ctx.lineTo(W, H * 0.958)
-  ctx.stroke()
-  ctx.setLineDash([])
-
   if (!front) {
-    // BACK OF BAG: Nutritional Table, Cooking Directions, Exporter Details
-    ctx.fillStyle = darkEarth
-    ctx.font = '700 36px Manrope, sans-serif'
-    ctx.fillText('PRODUCT SPECIFICATION & NUTRITION', W / 2, H * 0.15)
+    // BACK OF BAG: Deep wine maroon + gold specification sheet
+    const bgGrad = ctx.createLinearGradient(0, 0, W, 0)
+    bgGrad.addColorStop(0, '#420813')
+    bgGrad.addColorStop(0.5, '#5e0f1e')
+    bgGrad.addColorStop(1, '#420813')
+    ctx.fillStyle = bgGrad
+    ctx.fillRect(0, 0, W, H)
 
-    ctx.strokeStyle = gold
-    ctx.lineWidth = 2
+    // Side gold gusset strips
+    const gussetW = W * 0.11
+    const goldGrad = ctx.createLinearGradient(0, 0, gussetW, 0)
+    goldGrad.addColorStop(0, '#df9b15')
+    goldGrad.addColorStop(0.5, '#f8c73c')
+    goldGrad.addColorStop(1, '#cb8a0e')
+    ctx.fillStyle = goldGrad
+    ctx.fillRect(0, 0, gussetW, H)
+    ctx.fillRect(W - gussetW, 0, gussetW, H)
+
+    // Vertical text on back side gussets
+    ctx.save()
+    ctx.fillStyle = '#5c0d16'
+    ctx.font = '800 20px Manrope, sans-serif'
+    ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '7px'
+    ctx.translate(gussetW / 2, H * 0.5)
+    ctx.rotate(-Math.PI / 2)
+    ctx.textAlign = 'center'
+    ctx.fillText('KESHAR KALI ★ WADA KOLAM', 0, 7)
+    ctx.restore()
+
+    ctx.save()
+    ctx.fillStyle = '#5c0d16'
+    ctx.font = '800 20px Manrope, sans-serif'
+    ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '7px'
+    ctx.translate(W - gussetW / 2, H * 0.5)
+    ctx.rotate(Math.PI / 2)
+    ctx.textAlign = 'center'
+    ctx.fillText('KESHAR KALI ★ WADA KOLAM', 0, 7)
+    ctx.restore()
+
+    // Inner parchment card for nutrition and specs
+    const cardX = W * 0.14
+    const cardY = H * 0.08
+    const cardW = W * 0.72
+    const cardH = H * 0.84
+    ctx.fillStyle = '#fefaf0'
+    ctx.fillRect(cardX, cardY, cardW, cardH)
+    ctx.strokeStyle = '#d4af37'
+    ctx.lineWidth = 3
+    ctx.strokeRect(cardX, cardY, cardW, cardH)
+    ctx.strokeStyle = '#5e0f1e'
+    ctx.lineWidth = 1
+    ctx.strokeRect(cardX + 6, cardY + 6, cardW - 12, cardH - 12)
+
+    // Header inside card
+    ctx.textAlign = 'center'
+    ctx.fillStyle = '#5e0f1e'
+    ctx.font = '900 38px "Instrument Serif", Georgia, serif'
+    ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '3px'
+    ctx.fillText('KESHAR KALI', W / 2, cardY + 54)
+    ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
+
+    ctx.font = '700 18px Manrope, sans-serif'
+    ctx.fillStyle = '#b38210'
+    ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '4px'
+    ctx.fillText('PREMIUM WADA KOLAM RICE', W / 2, cardY + 86)
+    ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
+
+    ctx.font = 'italic 600 20px Georgia, serif'
+    ctx.fillStyle = '#55111f'
+    ctx.fillText('“ Khila Khila Dana ”', W / 2, cardY + 116)
+
+    // Divider
+    ctx.strokeStyle = '#d4af37'
+    ctx.lineWidth = 1.5
     ctx.beginPath()
-    ctx.moveTo(W * 0.15, H * 0.18)
-    ctx.lineTo(W * 0.85, H * 0.18)
+    ctx.moveTo(cardX + 30, cardY + 132)
+    ctx.lineTo(cardX + cardW - 30, cardY + 132)
     ctx.stroke()
 
-    // Nutrition Box
-    const bx = W * 0.15
-    const by = H * 0.22
-    const bw = W * 0.7
-    ctx.fillStyle = 'rgba(255,255,255,0.6)'
-    ctx.fillRect(bx, by, bw, H * 0.32)
-    ctx.strokeStyle = darkEarth
-    ctx.lineWidth = 1.5
-    ctx.strokeRect(bx, by, bw, H * 0.32)
+    // Nutrition Table
+    const nx = cardX + 24
+    const ny = cardY + 152
+    const nw = cardW - 48
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(nx, ny, nw, H * 0.28)
+    ctx.strokeStyle = '#ded0ab'
+    ctx.strokeRect(nx, ny, nw, H * 0.28)
 
-    ctx.fillStyle = darkEarth
+    ctx.fillStyle = '#5e0f1e'
     ctx.textAlign = 'left'
-    ctx.font = '700 24px Manrope, sans-serif'
-    ctx.fillText('NUTRITIONAL VALUES (PER 100g SERVING)', bx + 24, by + 40)
+    ctx.font = '700 18px Manrope, sans-serif'
+    ctx.fillText('NUTRITIONAL VALUES (PER 100g UNCOOKED)', nx + 18, ny + 32)
 
     const facts = [
-      ['Energy', '356 kcal'],
-      ['Carbohydrates', '78.2 g'],
-      ['Dietary Fiber', '2.4 g'],
-      ['Protein', '8.6 g'],
+      ['Energy', '354 kcal'],
+      ['Carbohydrates', '78.4 g'],
+      ['Dietary Fiber', '1.8 g'],
+      ['Protein', '7.8 g'],
       ['Total Fat', '0.5 g'],
-      ['Cholesterol', '0 mg'],
-      ['Moisture', '< 12.5%'],
+      ['Moisture', '< 12.8%'],
     ]
-    ctx.font = '500 22px Manrope, sans-serif'
+    ctx.font = '500 17px Manrope, sans-serif'
     facts.forEach(([label, val], idx) => {
-      const ly = by + 80 + idx * 34
-      ctx.fillStyle = '#443525'
-      ctx.fillText(label, bx + 30, ly)
+      const ly = ny + 64 + idx * 30
+      ctx.fillStyle = '#4e3b2b'
+      ctx.fillText(label, nx + 20, ly)
       ctx.fillStyle = '#1c150e'
       ctx.textAlign = 'right'
-      ctx.fillText(val, bx + bw - 30, ly)
+      ctx.fillText(val, nx + nw - 20, ly)
       ctx.textAlign = 'left'
     })
 
-    // Cooking Instructions
-    const cy = H * 0.58
-    ctx.fillStyle = darkEarth
-    ctx.font = '700 28px Manrope, sans-serif'
+    // Wada Kolam Cooking Instructions
+    const cy = ny + H * 0.32
+    ctx.fillStyle = '#5e0f1e'
+    ctx.font = '700 20px Manrope, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText('CULINARY INSTRUCTIONS', W / 2, cy)
 
     const steps = [
-      '1. SOAK: Gently rinse 1 cup rice, soak in lukewarm water for 30 minutes.',
-      '2. OPEN POT: Add soaked rice to 5 cups boiling water. Cook uncovered 8-10 mins.',
-      '3. REST & SERVE: Drain water thoroughly, fluff with fork, let rest 3 mins.',
+      '1. WASH: Rinse 1 cup rice gently 2-3 times in fresh cold water.',
+      '2. SOAK: Soak for 20 minutes to allow natural starch hydration.',
+      '3. COOK: Add 2 cups water, simmer covered on low heat 10-12 mins.',
+      '4. REST: Rest for 5 mins, fluff with fork for fluffy, distinct grains.',
     ]
-    ctx.font = '500 20px Manrope, sans-serif'
-    ctx.fillStyle = '#4a3826'
+    ctx.font = '500 15px Manrope, sans-serif'
+    ctx.fillStyle = '#443322'
     steps.forEach((st, i) => {
-      ctx.fillText(st, W / 2, cy + 45 + i * 36)
+      ctx.fillText(st, W / 2, cy + 34 + i * 26)
     })
 
     // Manufacturer Details
-    const my = H * 0.76
-    ctx.fillStyle = forest
-    ctx.font = '700 26px Manrope, sans-serif'
+    const my = cy + 155
+    ctx.fillStyle = '#5e0f1e'
+    ctx.font = '700 18px Manrope, sans-serif'
     ctx.fillText('PROCESSED & PACKED BY:', W / 2, my)
-    ctx.fillStyle = darkEarth
-    ctx.font = '600 22px Manrope, sans-serif'
-    ctx.fillText('TEJAS AGRO COMMODITIES PVT. LTD.', W / 2, my + 34)
-    ctx.font = '500 19px Manrope, sans-serif'
-    ctx.fillStyle = '#554230'
-    ctx.fillText('Grain Market Road, Karnal, Haryana 132001, India', W / 2, my + 62)
-    ctx.fillText('FSSAI LIC NO: 10014064000382 • ISO 22000:2018 CERTIFIED', W / 2, my + 88)
+    ctx.fillStyle = '#22150d'
+    ctx.font = '600 16px Manrope, sans-serif'
+    ctx.fillText('TEJAS AGRO COMMODITIES PVT. LTD.', W / 2, my + 26)
+    ctx.font = '500 14px Manrope, sans-serif'
+    ctx.fillStyle = '#665340'
+    ctx.fillText('Grain Market Road, Karnal, Haryana 132001, India', W / 2, my + 48)
+    ctx.fillText('FSSAI LIC NO: 10014064000382 • ISO 22000:2018', W / 2, my + 68)
 
-    // Handling symbols
-    ctx.fillStyle = darkEarth
-    ctx.font = '600 18px Manrope, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText('KEEP IN COOL & DRY PLACE • STORE ELEVATED FROM FLOOR', W / 2, H * 0.88)
+    // Barcode & Net weight badge
+    const footY = cardY + cardH - 58
+    ctx.fillStyle = '#5e0f1e'
+    ctx.font = '800 24px Manrope, sans-serif'
+    ctx.fillText('NET WT. 30 KG ( 66.1 LBS )', W / 2, footY)
+    ctx.font = '600 13px Manrope, sans-serif'
+    ctx.fillStyle = '#887258'
+    ctx.fillText('BATCH: KK-2026/09 • 100% SORTEX CLEANED', W / 2, footY + 24)
     return
   }
 
-  // FRONT OF BAG: Export packaging design
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'alphabetic'
+  // FRONT OF BAG: Authentic Keshar Kali Bag Design
+  // 1. Base wine burgundy / deep maroon gradient
+  const bgGrad = ctx.createLinearGradient(0, 0, W, 0)
+  bgGrad.addColorStop(0, '#420813')
+  bgGrad.addColorStop(0.12, '#5e0f1e')
+  bgGrad.addColorStop(0.5, '#731427')
+  bgGrad.addColorStop(0.88, '#5e0f1e')
+  bgGrad.addColorStop(1, '#420813')
+  ctx.fillStyle = bgGrad
+  ctx.fillRect(0, 0, W, H)
 
-  // 2. Heritage Laurel Emblem & Sunburst
-  const emblemY = H * 0.17
-  ctx.save()
-  ctx.translate(W / 2, emblemY)
-
-  // Golden wheat / laurel wreath
-  ctx.strokeStyle = gold
-  ctx.lineWidth = 3
-  ctx.beginPath()
-  ctx.arc(-45, -10, 42, Math.PI * 0.4, Math.PI * 1.5, false)
-  ctx.stroke()
-  ctx.beginPath()
-  ctx.arc(45, -10, 42, Math.PI * 1.5, Math.PI * 2.6, false)
-  ctx.stroke()
-
-  // Central star
-  ctx.fillStyle = gold
-  ctx.font = '36px sans-serif'
-  ctx.fillText('★', 0, -4)
-
-  // Ribbon text
-  ctx.fillStyle = forest
-  ctx.font = '700 16px Manrope, sans-serif'
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '4px'
-  ctx.fillText('ESTD. 1993', 0, 22)
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
-  ctx.restore()
-
-  // 3. Brand Header
-  ctx.fillStyle = darkEarth
-  ctx.font = '800 46px Manrope, sans-serif'
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '14px'
-  ctx.fillText('TEJAS ROYAL', W / 2 + 7, H * 0.25)
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
-
-  // Decorative divider
-  ctx.strokeStyle = gold
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  ctx.moveTo(W * 0.18, H * 0.275)
-  ctx.lineTo(W * 0.82, H * 0.275)
-  ctx.stroke()
-
-  // Sub-header
-  ctx.fillStyle = forest
-  ctx.font = '700 26px Manrope, sans-serif'
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '10px'
-  ctx.fillText('AUTHENTIC INDIAN BASMATI', W / 2 + 5, H * 0.32)
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
-
-  // 4. Variety Name (Main Focal Title)
-  let size = 160
-  ctx.font = `italic 700 ${size}px "Instrument Serif", Georgia, serif`
-  while (ctx.measureText(name).width > W * 0.84 && size > 64) {
-    size -= 4
-    ctx.font = `italic 700 ${size}px "Instrument Serif", Georgia, serif`
+  // Subtle damask pattern
+  ctx.fillStyle = 'rgba(235, 186, 50, 0.04)'
+  const dStep = 48
+  for (let y = 0; y < H; y += dStep) {
+    for (let x = 0; x < W; x += dStep) {
+      if ((x / dStep + y / dStep) % 2 === 0) {
+        ctx.beginPath()
+        ctx.arc(x + 24, y + 24, 7, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
   }
 
-  // Embossed gold drop shadow behind name
-  ctx.fillStyle = 'rgba(196, 154, 56, 0.45)'
-  ctx.fillText(name, W / 2 + 3, H * 0.445 + 3)
+  // 2. Golden-Yellow Side Gussets
+  const gussetW = W * 0.125
+  const goldGradL = ctx.createLinearGradient(0, 0, gussetW, 0)
+  goldGradL.addColorStop(0, '#df9b15')
+  goldGradL.addColorStop(0.5, '#f8c73c')
+  goldGradL.addColorStop(1, '#cb8a0e')
+  ctx.fillStyle = goldGradL
+  ctx.fillRect(0, 0, gussetW, H)
 
-  // Crisp roasted earth name
-  ctx.fillStyle = darkEarth
-  ctx.fillText(name, W / 2, H * 0.445)
+  const goldGradR = ctx.createLinearGradient(W - gussetW, 0, W, 0)
+  goldGradR.addColorStop(0, '#cb8a0e')
+  goldGradR.addColorStop(0.5, '#f8c73c')
+  goldGradR.addColorStop(1, '#df9b15')
+  ctx.fillStyle = goldGradR
+  ctx.fillRect(W - gussetW, 0, gussetW, H)
 
-  // Subtitle
-  ctx.fillStyle = '#63503d'
-  ctx.font = '600 20px Manrope, sans-serif'
+  // Gusset inner boundary red pinstripes
+  ctx.fillStyle = '#3a060f'
+  ctx.fillRect(gussetW - 3, 0, 3, H)
+  ctx.fillRect(W - gussetW, 0, 3, H)
+
+  // Gusset vertical typography
+  ctx.save()
+  ctx.fillStyle = '#5c0d16'
+  ctx.font = '900 24px Manrope, sans-serif'
+  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '10px'
+  ctx.translate(gussetW / 2, H * 0.5)
+  ctx.rotate(-Math.PI / 2)
+  ctx.textAlign = 'center'
+  ctx.fillText('KESHAR KALI ★ WADA KOLAM', 0, 8)
+  ctx.restore()
+
+  ctx.save()
+  ctx.fillStyle = '#5c0d16'
+  ctx.font = '900 24px Manrope, sans-serif'
+  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '10px'
+  ctx.translate(W - gussetW / 2, H * 0.5)
+  ctx.rotate(Math.PI / 2)
+  ctx.textAlign = 'center'
+  ctx.fillText('KESHAR KALI ★ WADA KOLAM', 0, 8)
+  ctx.restore()
+
+  // 3. Composite the authentic Keshar Kali bag image
+  const img = getKesharBagImage(onImgLoad)
+  if (img && img.complete && img.naturalWidth > 0) {
+    const drawX = gussetW
+    const drawY = H * 0.045
+    const drawW = W - gussetW * 2
+    const drawH = H * 0.895
+    ctx.drawImage(img, drawX, drawY, drawW, drawH)
+  } else {
+    // Procedural rendering fallback if image is loading
+    const emblemY = H * 0.22
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'alphabetic'
+
+    // Arched shield
+    ctx.fillStyle = '#f2efe6'
+    ctx.beginPath()
+    ctx.arc(W / 2, emblemY, 70, Math.PI, 0, false)
+    ctx.lineTo(W / 2 + 70, emblemY + 60)
+    ctx.lineTo(W / 2, emblemY + 110)
+    ctx.lineTo(W / 2 - 70, emblemY + 60)
+    ctx.closePath()
+    ctx.fill()
+    ctx.strokeStyle = '#d4af37'
+    ctx.lineWidth = 4
+    ctx.stroke()
+
+    // Brand Name
+    ctx.fillStyle = '#ffd24d'
+    ctx.font = '900 72px "Instrument Serif", Georgia, serif'
+    ctx.fillText('KESHAR KALI', W / 2, H * 0.44)
+
+    // Ribbon
+    ctx.fillStyle = '#f8c73c'
+    ctx.fillRect(W * 0.16, H * 0.48, W * 0.68, 54)
+    ctx.fillStyle = '#5e0f1e'
+    ctx.font = '800 26px Manrope, sans-serif'
+    ctx.fillText('PREMIUM WADA KOLAM RICE', W / 2, H * 0.518)
+
+    // Tagline
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'italic 700 48px Georgia, serif'
+    ctx.fillText('Khila Khila Dana', W / 2, H * 0.60)
+  }
+
+  // 4. White Crepe Top Hem with Red Stitching
+  const topTapeH = H * 0.075
+  ctx.fillStyle = '#fbf7ee'
+  ctx.fillRect(0, 0, W, topTapeH)
+  ctx.fillStyle = '#cfa035'
+  ctx.fillRect(0, topTapeH - 3, W, 3)
+
+  // Top tape text
+  ctx.fillStyle = '#5e0f1e'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.font = '800 20px Manrope, sans-serif'
   ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '6px'
-  ctx.fillText('NATURALLY AGED FOR TWO YEARS • EXTRA LONG SLENDER GRAIN', W / 2 + 3, H * 0.485)
+  ctx.fillText('★ KESHAR KALI ★ KHILA KHILA DANA ★', W / 2, topTapeH * 0.44)
   ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
 
-  // 5. Central Golden Medallion with Grain Showcase
-  const medY = H * 0.60
-  const medR = 110
-
-  // Outer gold ring
-  ctx.strokeStyle = gold
-  ctx.lineWidth = 4
+  // Red chain stitch line across top
+  ctx.strokeStyle = '#c61d23'
+  ctx.lineWidth = 3.5
+  ctx.setLineDash([14, 10])
   ctx.beginPath()
-  ctx.arc(W / 2, medY, medR, 0, Math.PI * 2)
-  ctx.stroke()
-
-  // Inner dashed ring
-  ctx.strokeStyle = 'rgba(46, 61, 35, 0.6)'
-  ctx.lineWidth = 2
-  ctx.setLineDash([8, 6])
-  ctx.beginPath()
-  ctx.arc(W / 2, medY, medR - 8, 0, Math.PI * 2)
+  ctx.moveTo(0, topTapeH * 0.8)
+  ctx.lineTo(W, topTapeH * 0.8)
   ctx.stroke()
   ctx.setLineDash([])
 
-  // Medallion inner fill
-  const medGrad = ctx.createRadialGradient(W / 2, medY - 20, 10, W / 2, medY, medR - 10)
-  medGrad.addColorStop(0, '#fffef8')
-  medGrad.addColorStop(0.7, '#f7edd2')
-  medGrad.addColorStop(1, '#e8d4a6')
-  ctx.fillStyle = medGrad
+  // 5. Bottom Folded Hem
+  const btmH = H * 0.05
+  ctx.fillStyle = '#4a0b16'
+  ctx.fillRect(0, H - btmH, W, btmH)
+  ctx.fillStyle = '#cfa035'
+  ctx.fillRect(0, H - btmH, W, 3)
+
+  ctx.strokeStyle = '#c61d23'
+  ctx.lineWidth = 3.5
+  ctx.setLineDash([14, 10])
   ctx.beginPath()
-  ctx.arc(W / 2, medY, medR - 10, 0, Math.PI * 2)
-  ctx.fill()
+  ctx.moveTo(0, H - btmH * 0.4)
+  ctx.lineTo(W, H - btmH * 0.4)
+  ctx.stroke()
+  ctx.setLineDash([])
 
-  // Medallion grain illustrations (cluster of 3 slender translucent grains)
-  ctx.save()
-  ctx.translate(W / 2, medY - 10)
-  for (let rot of [-0.28, 0.05, 0.38]) {
-    ctx.save()
-    ctx.rotate(rot)
-    const gr = ctx.createLinearGradient(-35, 0, 35, 0)
-    gr.addColorStop(0, '#ffffff')
-    gr.addColorStop(0.5, '#fff9eb')
-    gr.addColorStop(1, '#dfce9c')
-    ctx.fillStyle = gr
-    ctx.strokeStyle = 'rgba(74, 56, 36, 0.45)'
-    ctx.lineWidth = 1.8
-    ctx.beginPath()
-    ctx.ellipse(0, 0, 48, 14, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.stroke()
-    ctx.restore()
-  }
-  ctx.restore()
-
-  // Medallion text banner
-  ctx.fillStyle = forest
-  ctx.font = '800 16px Manrope, sans-serif'
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '3px'
-  ctx.fillText('100% SORTEX CLEANED', W / 2 + 1, medY + 62)
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
-
-  // 6. Quality Certification Pills / Badges
-  const badgeY = H * 0.725
-  const badgeLabels = [
-    ['8.3 mm+', 'AVG LENGTH'],
-    ['AGED 24M', 'IN SILOS'],
-    ['RICH AROMA', 'NATURAL'],
-    ['ZERO PEST', 'TESTED'],
-  ]
-  const badgeW = W * 0.17
-  const totalBadgesW = 4 * badgeW + 3 * 16
-  let startX = (W - totalBadgesW) / 2
-
-  badgeLabels.forEach(([top, btm], i) => {
-    const x = startX + i * (badgeW + 16)
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
-    ctx.fillRect(x, badgeY - 26, badgeW, 52)
-    ctx.strokeStyle = gold
-    ctx.lineWidth = 1.8
-    ctx.strokeRect(x, badgeY - 26, badgeW, 52)
-
-    ctx.fillStyle = forest
-    ctx.font = '800 17px Manrope, sans-serif'
-    ctx.fillText(top, x + badgeW / 2, badgeY - 4)
-
-    ctx.fillStyle = darkEarth
-    ctx.font = '600 12px Manrope, sans-serif'
-    ctx.fillText(btm, x + badgeW / 2, badgeY + 16)
-  })
-
-  // 7. Wholesale Weight & Stencil Block
-  const weightY = H * 0.835
-  ctx.fillStyle = darkEarth
-  ctx.font = '900 68px Manrope, sans-serif'
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '6px'
-  ctx.fillText('NET WT. 25 KG', W / 2 + 3, weightY)
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
-
-  ctx.fillStyle = deepRed
-  ctx.font = '700 24px Manrope, sans-serif'
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '4px'
-  ctx.fillText('( 55.12 LBS )', W / 2 + 2, weightY + 30)
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
-
-  // 8. Industrial Packaging Details & Barcode
-  const footY = H * 0.905
-
-  // Left stamp
-  ctx.textAlign = 'left'
-  ctx.fillStyle = '#4a3826'
-  ctx.font = '600 15px Manrope, sans-serif'
-  ctx.fillText('BATCH: TJ-2026/09', W * 0.14, footY - 14)
-  ctx.fillText('LOT NO: 418-EXP', W * 0.14, footY + 8)
-  ctx.fillText('PKD: OCT 2026', W * 0.14, footY + 30)
-
-  // Right barcode simulation
-  const barX = W * 0.64
-  const barY = footY - 22
-  const barW = W * 0.22
-  const barH = 42
-
-  ctx.fillStyle = '#ffffff'
-  ctx.fillRect(barX - 6, barY - 4, barW + 12, barH + 20)
-  ctx.fillStyle = '#1c150e'
-
-  // Draw authentic vertical barcode bars
-  let bx = barX
-  const pattern = [2, 1, 3, 1, 2, 4, 1, 2, 3, 1, 1, 4, 2, 1, 3, 2, 1, 3, 1, 4, 2, 1, 2, 3]
-  for (let p of pattern) {
-    ctx.fillRect(bx, barY, p * 2.2, barH)
-    bx += (p + 1.8) * 2.2
-  }
-  ctx.font = '600 13px monospace'
-  ctx.textAlign = 'center'
-  ctx.fillText('8 901234 567890', barX + barW / 2, barY + barH + 12)
+  // 6. Cylindrical Volume & Fabric Weave Lighting Vignette
+  const vig = ctx.createLinearGradient(0, 0, W, 0)
+  vig.addColorStop(0, 'rgba(20, 5, 8, 0.38)')
+  vig.addColorStop(0.12, 'rgba(20, 5, 8, 0.08)')
+  vig.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)')
+  vig.addColorStop(0.88, 'rgba(20, 5, 8, 0.08)')
+  vig.addColorStop(1, 'rgba(20, 5, 8, 0.38)')
+  ctx.fillStyle = vig
+  ctx.fillRect(0, 0, W, H)
 }
 
 /* ---------- realistic 3D sack geometry & assembly ---------- */
@@ -589,7 +560,12 @@ function makeBag(name: string) {
   backCv.width = 1024
   backCv.height = 1536
 
-  drawBag(frontCv, name, true)
+  const onImgLoad = () => {
+    drawBag(frontCv, name, true)
+    frontTex.needsUpdate = true
+  }
+
+  drawBag(frontCv, name, true, onImgLoad)
   drawBag(backCv, name, false)
 
   const frontTex = new THREE.CanvasTexture(frontCv)
@@ -605,14 +581,14 @@ function makeBag(name: string) {
     new THREE.MeshPhysicalMaterial({
       map,
       bumpMap: bump,
-      bumpScale: 0.7,
-      roughness: 0.46, // Woven polypropylene with silky finish
+      bumpScale: 0.65,
+      roughness: 0.42, // Woven polypropylene with silky finish
       metalness: 0.02,
-      sheen: 0.85, // Strong fabric sheen catching light on woven fibers
-      sheenColor: new THREE.Color('#fff7e6'),
-      sheenRoughness: 0.4,
-      clearcoat: 0.16, // BOPP laminated film shine
-      clearcoatRoughness: 0.35,
+      sheen: 0.75, // Fabric sheen catching light on woven fibers
+      sheenColor: new THREE.Color('#ffebb8'),
+      sheenRoughness: 0.35,
+      clearcoat: 0.2, // BOPP laminated film shine
+      clearcoatRoughness: 0.32,
       side: THREE.DoubleSide,
     })
 
@@ -640,7 +616,7 @@ function makeBag(name: string) {
   topTapeMesh.position.set(0, h + 0.04, 0)
   topTapeMesh.castShadow = true
 
-  // 3D Dangling Sewing Thread Tail (iconic machine-stitched bag closure feature)
+  // 3D Dangling Sewing Thread Tail (iconic red machine-stitched bag closure feature)
   const threadPts = [
     new THREE.Vector3(w + 0.04, h + 0.05, 0.02),
     new THREE.Vector3(w + 0.09, h - 0.02, 0.03),
@@ -650,15 +626,15 @@ function makeBag(name: string) {
   const threadCurve = new THREE.CatmullRomCurve3(threadPts)
   const threadGeo = new THREE.TubeGeometry(threadCurve, 20, 0.008, 8, false)
   const threadMat = new THREE.MeshStandardMaterial({
-    color: '#fffef0',
-    roughness: 0.6,
+    color: '#c91e25',
+    roughness: 0.5,
   })
   const threadMesh = new THREE.Mesh(threadGeo, threadMat)
 
   // 3D Folded Bottom Base Rim
   const baseRimGeo = new THREE.BoxGeometry(w * 2 - 0.04, 0.08, 0.12)
   const baseRimMat = new THREE.MeshStandardMaterial({
-    color: '#2a3821',
+    color: '#420813',
     roughness: 0.6,
   })
   const baseRimMesh = new THREE.Mesh(baseRimGeo, baseRimMat)
@@ -670,7 +646,9 @@ function makeBag(name: string) {
   g.rotation.y = 0.2
 
   const redraw = (n: string) => {
-    drawBag(frontCv, n, true)
+    drawBag(frontCv, n, true, () => {
+      frontTex.needsUpdate = true
+    })
     frontTex.needsUpdate = true
   }
 
@@ -713,11 +691,12 @@ function makeBowl() {
   pts.push(new THREE.Vector2(0.001, 0.17))
   const geo = new THREE.LatheGeometry(pts, 96)
   const mat = new THREE.MeshPhysicalMaterial({
-    color: '#4e5c38', // Deep glazed olive ceramic
-    roughness: 0.22,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.08,
-    sheen: 0.25,
+    color: '#c49a3c', // Artisanal golden brass platter matching the Keshar Kali serving thali
+    roughness: 0.28,
+    metalness: 0.62,
+    clearcoat: 0.85,
+    clearcoatRoughness: 0.1,
+    sheen: 0.35,
     side: THREE.DoubleSide,
   })
   const mesh = new THREE.Mesh(geo, mat)
