@@ -1,14 +1,24 @@
 import { VARIETIES } from '../data'
 import { Grain, Label } from './Story'
 import { Reveal } from '../components/Reveal'
+import { scrollToTarget } from '../lib/utils'
 
-type Props = { sel: number; setSel: (n: number) => void }
+type Props = {
+  sel: number
+  setSel: (n: number) => void
+  onSkipToQuote?: () => void
+  openAuthModal?: () => void
+}
 
-export default function Products({ sel, setSel }: Props) {
+export default function Products({ sel, setSel, onSkipToQuote, openAuthModal }: Props) {
   const pick = (i: number) => setSel(i)
   const pickAndQuote = (i: number) => {
     setSel(i)
-    document.getElementById('quote')?.scrollIntoView({ behavior: 'smooth' })
+    if (onSkipToQuote) {
+      onSkipToQuote()
+    } else {
+      scrollToTarget('quote')
+    }
   }
 
   return (
@@ -23,10 +33,27 @@ export default function Products({ sel, setSel }: Props) {
               </h2>
             </Reveal>
           </div>
-          <Reveal delay={180} className="max-w-xs">
+          <Reveal delay={180} className="max-w-md">
             <p className="text-sm leading-relaxed text-earth/65">
               Every variety is milled to order, aged for depth, and packed in food-grade wholesale bags. Featuring our flagship Keshar Kali Wada Kolam.
             </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2.5">
+              <button
+                onClick={() => (onSkipToQuote ? onSkipToQuote() : scrollToTarget('quote'))}
+                className="flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-earth hover:bg-[#d8a846] transition shadow-sm cursor-pointer"
+              >
+                <span>Skip to Quote</span>
+                <span>→</span>
+              </button>
+              {openAuthModal && (
+                <button
+                  onClick={openAuthModal}
+                  className="rounded-full border border-earth/25 px-4 py-2 text-xs font-medium text-earth hover:border-earth hover:bg-earth/5 transition cursor-pointer"
+                >
+                  Partner Sign In
+                </button>
+              )}
+            </div>
           </Reveal>
         </div>
 

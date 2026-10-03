@@ -2,6 +2,8 @@ import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } fr
 import GrainViewer from '../three/GrainViewer'
 import FinalScene from '../three/FinalScene'
 import { VARIETIES, MAX_MM } from '../data'
+import { scrollToTarget } from '../lib/utils'
+import type { PartnerUser } from '../components/PartnerModal'
 
 /* ---------- assets ---------- */
 const U = (id: string, w = 1800) =>
@@ -150,7 +152,7 @@ const layer = (o: number): React.CSSProperties => ({
 })
 
 /* ---------- Scene 1 ---------- */
-function Farm({ p }: { p: number }) {
+function Farm({ p, go, openAuthModal }: { p: number; go: (at: number) => void; openAuthModal: () => void }) {
   const z = 1 + 2.1 * s(p, 0, 0.22) * M
   const out = 1 - s(p, 0.17, 0.24)
   const head = 1 - s(p, 0.02, 0.09)
@@ -175,6 +177,37 @@ function Farm({ p }: { p: number }) {
         <p className="rise mt-5 max-w-sm text-base text-white/85" style={{ animationDelay: '.7s' }}>
           Discover the journey behind every grain.
         </p>
+
+        {/* Interactive Quick Action Buttons */}
+        <div className="rise mt-6 flex flex-wrap items-center gap-2.5 sm:gap-3" style={{ animationDelay: '.85s' }}>
+          <button
+            onClick={() => go(0.19)}
+            className="group flex min-h-[44px] items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-earth transition-all hover:bg-rice shadow-lg active:scale-95 cursor-pointer"
+          >
+            <span>Begin 3D Journey</span>
+            <span className="text-sm transition-transform duration-300 group-hover:translate-y-0.5">↓</span>
+          </button>
+          <button
+            onClick={() => scrollToTarget('quote')}
+            className="flex min-h-[44px] items-center gap-1.5 rounded-full border border-gold bg-gold px-5 py-2.5 text-xs font-bold uppercase tracking-[0.16em] text-earth transition-all hover:bg-[#d8a846] shadow-lg active:scale-95 cursor-pointer"
+          >
+            <span>Skip to Quote</span>
+            <span className="text-sm">→</span>
+          </button>
+          <button
+            onClick={() => scrollToTarget('products')}
+            className="min-h-[44px] rounded-full border border-white/40 bg-black/25 backdrop-blur px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-white/20 hover:border-white cursor-pointer"
+          >
+            Collection
+          </button>
+          <button
+            onClick={openAuthModal}
+            className="flex min-h-[44px] items-center gap-1.5 rounded-full border border-white/25 bg-black/35 backdrop-blur px-3.5 py-2.5 text-xs font-medium text-white/90 transition hover:bg-white/20 cursor-pointer"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+            <span>Partner Sign In</span>
+          </button>
+        </div>
       </div>
       <div className="rise absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-white/80" style={{ opacity: head, animationDelay: '1.1s' }}>
         <span className="text-[10px] uppercase tracking-[0.3em]">Scroll</span>
@@ -304,6 +337,23 @@ function Explore({ p, sel, setSel }: { p: number; sel: number; setSel: (n: numbe
                   <span className="font-serif text-base font-medium text-earth">{v.thickness} mm</span>
                 </div>
               </div>
+            </div>
+
+            {/* Quick Action buttons */}
+            <div className="mt-3.5 flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => scrollToTarget('quote')}
+                className="flex items-center gap-1.5 rounded-full bg-earth px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-rice transition-all hover:bg-paddy shadow-sm active:scale-95 cursor-pointer"
+              >
+                <span>Quote for {v.name}</span>
+                <span className="text-xs">→</span>
+              </button>
+              <button
+                onClick={() => scrollToTarget('products')}
+                className="rounded-full border border-earth/25 bg-earth/[0.03] px-3.5 py-2 text-xs font-medium text-earth/80 transition hover:border-earth hover:bg-earth/10 cursor-pointer"
+              >
+                View Price Table
+              </button>
             </div>
           </div>
         </div>
@@ -490,8 +540,18 @@ function Final({ p }: { p: number; sel: number }) {
             ))}
           </dl>
           <div className="mt-4 grid max-w-sm grid-cols-2 gap-2 md:mt-6 md:gap-3" style={rise(1, 0.4)}>
-            <a href="#products" className="rounded-full bg-earth px-4 py-3.5 text-center text-sm font-medium text-rice transition hover:bg-paddy">Explore Products</a>
-            <a href="#quote" className="rounded-full border border-earth/40 px-4 py-3.5 text-center text-sm font-medium transition hover:border-earth hover:bg-earth/5">Request a Quote</a>
+            <button
+              onClick={() => scrollToTarget('products')}
+              className="rounded-full bg-earth px-4 py-3.5 text-center text-sm font-medium text-rice transition-all hover:bg-paddy shadow-md active:scale-95 cursor-pointer"
+            >
+              Explore Products
+            </button>
+            <button
+              onClick={() => scrollToTarget('quote')}
+              className="rounded-full border border-earth/20 bg-gold px-4 py-3.5 text-center text-sm font-bold text-earth transition-all hover:bg-[#d8a846] shadow-md active:scale-95 cursor-pointer"
+            >
+              Request a Quote →
+            </button>
           </div>
           <div className="mt-5 md:mt-9" style={{ opacity: close, transform: `translate3d(0, ${(1 - close) * 18}px, 0)` }}>
             <p className="font-serif text-2xl italic leading-none md:text-4xl">Quality in Every Grain.</p>
@@ -504,65 +564,241 @@ function Final({ p }: { p: number; sel: number }) {
 }
 
 /* ---------- chrome ---------- */
-const SECTION_LINKS = [
-  { name: 'Collection', href: '#products' },
-  { name: 'Heritage', href: '#heritage' },
-  { name: 'Voices', href: '#voices' },
-  { name: 'Quote', href: '#quote' },
-]
-
-function Chrome({ p, past, go }: { p: number; past: boolean; go: (at: number) => void }) {
+function Chrome({
+  p,
+  past,
+  go,
+  openAuthModal,
+  partnerUser,
+}: {
+  p: number
+  past: boolean
+  go: (at: number) => void
+  openAuthModal: () => void
+  partnerUser: PartnerUser | null
+}) {
   const active = p < 0.19 ? 0 : p < 0.45 ? 1 : p < 0.7 ? 2 : p < 0.9 ? 3 : 4
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   return (
     <>
-      <div className="pointer-events-none fixed left-6 top-6 z-30 text-white mix-blend-difference md:left-12 md:top-9">
-        <a href="#top" className="pointer-events-auto block" aria-label="Back to top"><Logo /></a>
-      </div>
+      {/* Persistent Floating Navigation Bar */}
+      <header className="fixed inset-x-3 top-3 z-40 md:inset-x-8 md:top-5">
+        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-white/20 bg-earth/85 px-4 py-2 text-rice backdrop-blur-md shadow-xl transition-all duration-300 md:px-6 md:py-2.5">
+          {/* Logo / Brand */}
+          <button
+            onClick={() => scrollToTarget('top')}
+            className="flex items-center gap-2 text-left text-rice hover:text-white transition focus:outline-none cursor-pointer"
+            aria-label="Back to top"
+          >
+            <Logo />
+          </button>
 
-      {/* section links — appear after the story */}
-      <nav
-        aria-label="Sections"
-        className="fixed right-6 top-6 z-30 flex items-center gap-5 text-white mix-blend-difference transition-all duration-700 md:right-12 md:top-9 md:gap-7"
-        style={{ opacity: past ? 1 : 0, transform: `translateY(${past ? 0 : -12}px)`, pointerEvents: past ? 'auto' : 'none' }}
-      >
-        {SECTION_LINKS.map((l) => (
-          <a key={l.name} href={l.href} className="hidden text-[11px] font-semibold uppercase tracking-[0.24em] opacity-70 transition-opacity hover:opacity-100 md:block">
-            {l.name}
-          </a>
-        ))}
-        <a href="#quote" className="rounded-full border border-white/50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] transition-colors hover:bg-white hover:text-black">
-          Quote
-        </a>
-      </nav>
+          {/* Center Links (Desktop) */}
+          <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
+            <button
+              onClick={() => go(0)}
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rice/75 hover:text-white transition cursor-pointer"
+            >
+              Story
+            </button>
+            <button
+              onClick={() => scrollToTarget('products')}
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rice/75 hover:text-white transition cursor-pointer"
+            >
+              Collection
+            </button>
+            <button
+              onClick={() => scrollToTarget('heritage')}
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rice/75 hover:text-white transition cursor-pointer"
+            >
+              Heritage
+            </button>
+            <button
+              onClick={() => scrollToTarget('voices')}
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rice/75 hover:text-white transition cursor-pointer"
+            >
+              Voices
+            </button>
+          </nav>
 
-      {/* chapter dots — story only */}
+          {/* Action CTAs */}
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Skip to Quote button - Prominent CTA */}
+            <button
+              onClick={() => scrollToTarget('quote')}
+              className="group flex items-center gap-1.5 rounded-full bg-gold px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-earth transition-all hover:bg-[#d8a846] hover:shadow-md active:scale-95 shadow-sm cursor-pointer"
+              title="Skip directly to quote desk"
+            >
+              <span>Skip to Quote</span>
+              <span className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
+            </button>
+
+            {/* Sign In / Partner Portal Button */}
+            <button
+              onClick={openAuthModal}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] transition-all active:scale-95 cursor-pointer ${
+                partnerUser
+                  ? 'border-gold/60 bg-gold/20 text-gold hover:bg-gold/30'
+                  : 'border-rice/30 bg-rice/10 text-rice hover:bg-rice/20 hover:border-rice/60'
+              }`}
+              title="Trade & Wholesale Portal"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              {partnerUser ? (
+                <span className="max-w-[85px] md:max-w-[120px] truncate">{partnerUser.name}</span>
+              ) : (
+                <span>Sign In</span>
+              )}
+            </button>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-rice/25 text-rice md:hidden hover:bg-rice/10 cursor-pointer"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? '✕' : '☰'}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="mt-2 rounded-2xl border border-white/20 bg-earth/95 p-4 text-rice backdrop-blur-xl shadow-2xl md:hidden animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex flex-col space-y-3">
+              <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-rice/40 pb-1 border-b border-rice/10">
+                Scenes & Exploration
+              </div>
+              {CHAPTERS.map((c) => (
+                <button
+                  key={c.name}
+                  onClick={() => {
+                    go(c.at)
+                    setMobileMenuOpen(false)
+                  }}
+                  className="flex items-center justify-between text-left text-xs font-medium text-rice/80 hover:text-white py-1 cursor-pointer"
+                >
+                  <span>Scene · {c.name}</span>
+                  <span className="text-[10px] text-rice/40">Jump →</span>
+                </button>
+              ))}
+              <div className="pt-2 border-t border-rice/10 flex flex-col space-y-2">
+                <button
+                  onClick={() => {
+                    scrollToTarget('products')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-rice/90 py-1 cursor-pointer"
+                >
+                  The Collection
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToTarget('heritage')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-rice/90 py-1 cursor-pointer"
+                >
+                  Our Heritage
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToTarget('voices')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-rice/90 py-1 cursor-pointer"
+                >
+                  Voices from the Trade
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToTarget('quote')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full mt-2 rounded-full bg-gold py-2.5 text-center text-xs font-bold uppercase tracking-[0.16em] text-earth cursor-pointer"
+                >
+                  Skip to Quote Desk →
+                </button>
+                <button
+                  onClick={() => {
+                    openAuthModal()
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full rounded-full border border-rice/30 py-2.5 text-center text-xs font-semibold uppercase tracking-[0.16em] text-rice cursor-pointer"
+                >
+                  {partnerUser ? `Signed In: ${partnerUser.name}` : 'Partner Sign In'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Chapter Indicator Dots (Story View) */}
       <nav
         aria-label="Chapters"
         className="fixed right-4 top-1/2 z-30 flex -translate-y-1/2 flex-col items-end gap-3 text-white mix-blend-difference transition-opacity duration-700 md:right-8"
         style={{ opacity: past ? 0 : 1, pointerEvents: past ? 'none' : 'auto' }}
       >
         {CHAPTERS.map((c, i) => (
-          <button key={c.name} onClick={() => go(c.at)} aria-label={c.name} aria-current={i === active} className="group flex items-center gap-3 py-1">
-            <span className={`hidden text-[10px] uppercase tracking-[0.25em] transition-all duration-500 md:block ${i === active ? 'opacity-100' : 'translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-70'}`}>{c.name}</span>
-            <span className={`block rounded-full bg-white transition-all duration-500 ${i === active ? 'h-6 w-[3px]' : 'h-[6px] w-[6px] opacity-50 group-hover:opacity-100'}`} />
+          <button
+            key={c.name}
+            onClick={() => go(c.at)}
+            aria-label={`Jump to ${c.name}`}
+            aria-current={i === active}
+            className="group flex items-center gap-3 py-1 cursor-pointer"
+          >
+            <span
+              className={`hidden text-[10px] uppercase tracking-[0.25em] transition-all duration-500 md:block ${
+                i === active ? 'opacity-100 font-bold text-gold' : 'translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-70'
+              }`}
+            >
+              {c.name}
+            </span>
+            <span
+              className={`block rounded-full bg-white transition-all duration-500 ${
+                i === active ? 'h-6 w-[3px] bg-gold' : 'h-[6px] w-[6px] opacity-50 group-hover:opacity-100'
+              }`}
+            />
           </button>
         ))}
       </nav>
 
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-30 h-[2px]">
-        <div className="h-full origin-left bg-gold" style={{ transform: `scaleX(${p})` }} />
+      {/* Progress Line */}
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[3px]">
+        <div className="h-full origin-left bg-gold shadow-sm" style={{ transform: `scaleX(${p})` }} />
       </div>
       <div
         className="pointer-events-none fixed inset-0 z-20 opacity-[0.07] mix-blend-multiply"
-        style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")" }}
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+        }}
       />
-      <div className="pointer-events-none fixed inset-0 z-20" style={{ background: 'radial-gradient(ellipse at center, transparent 60%, rgba(40,28,14,.22) 100%)' }} />
+      <div
+        className="pointer-events-none fixed inset-0 z-20"
+        style={{ background: 'radial-gradient(ellipse at center, transparent 60%, rgba(40,28,14,.22) 100%)' }}
+      />
     </>
   )
 }
 
 /* ---------- story root ---------- */
-export default function ScrollStory({ sel, setSel }: { sel: number; setSel: (n: number) => void }) {
+export default function ScrollStory({
+  sel,
+  setSel,
+  openAuthModal,
+  partnerUser,
+}: {
+  sel: number
+  setSel: (n: number) => void
+  openAuthModal: () => void
+  partnerUser: PartnerUser | null
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const { p, past } = useStageProgress(ref)
 
@@ -577,14 +813,14 @@ export default function ScrollStory({ sel, setSel }: { sel: number; setSel: (n: 
     <>
       <div ref={ref} style={{ height: `${TOTAL_VH}vh` }} className="relative" id="top">
         <div className="sticky top-0 h-dvh overflow-hidden">
-          <Farm p={p} />
+          <Farm p={p} go={go} openAuthModal={openAuthModal} />
           <Harvest p={p} />
           <Explore p={p} sel={sel} setSel={setSel} />
           <Processing p={p} sel={sel} />
           <Final p={p} sel={sel} />
         </div>
       </div>
-      <Chrome p={p} past={past} go={go} />
+      <Chrome p={p} past={past} go={go} openAuthModal={openAuthModal} partnerUser={partnerUser} />
     </>
   )
 }
