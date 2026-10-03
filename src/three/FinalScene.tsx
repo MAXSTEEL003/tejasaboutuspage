@@ -720,7 +720,42 @@ function makeBag(name: string) {
   return { group: g, redraw, dispose }
 }
 
-/* ---------- bowl ---------- */
+/* ---------- procedural dense rice substrate texture for full mound core ---------- */
+function makeRiceBedTexture(): THREE.CanvasTexture {
+  const cv = document.createElement('canvas')
+  cv.width = 512
+  cv.height = 512
+  const ctx = cv.getContext('2d')!
+  ctx.fillStyle = '#fcf8ee'
+  ctx.fillRect(0, 0, 512, 512)
+
+  // Dense stipple pattern of thousands of micro-grains to simulate dense subsurface rice
+  const r = rng(101)
+  for (let i = 0; i < 3500; i++) {
+    const x = r() * 512
+    const y = r() * 512
+    const len = 9 + r() * 9
+    const ang = r() * Math.PI
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.rotate(ang)
+    ctx.fillStyle = r() < 0.28 ? '#ffffff' : r() < 0.78 ? '#fcf9f1' : '#ede2ca'
+    ctx.beginPath()
+    ctx.ellipse(0, 0, len * 0.5, 2.4, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = 'rgba(120, 95, 60, 0.08)'
+    ctx.lineWidth = 0.75
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  const tex = new THREE.CanvasTexture(cv)
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping
+  tex.repeat.set(5, 5)
+  return tex
+}
+
+/* ---------- bowl & inner full rice mound core ---------- */
 const BOWL = { x: 1.55, z: 1.0, R: 1.15, H: 0.62 }
 function makeBowl() {
   const { R, H } = BOWL
@@ -751,7 +786,45 @@ function makeBowl() {
   mesh.castShadow = true
   mesh.receiveShadow = true
   mesh.position.set(BOWL.x, 0, BOWL.z)
-  return { mesh, dispose: () => { geo.dispose(); mat.dispose() } }
+
+  // Solid, perfectly curved inner rice mound core (guarantees bowl looks 100% full with ZERO gaps)
+  const innerRimR = R - 0.065 // 1.085
+  const innerRimY = top + 0.018 // 0.708
+  const peakH = 0.38
+  const bedPts: THREE.Vector2[] = []
+  const steps = 36
+  for (let i = 0; i <= steps; i++) {
+    const frac = i / steps
+    const r = frac * innerRimR
+    const h = innerRimY + peakH * Math.pow(Math.max(0, 1 - Math.pow(frac, 1.75)), 0.76)
+    bedPts.push(new THREE.Vector2(Math.max(0.001, r), h))
+  }
+  // Step down inside the inner brass wall so it forms a seamless watertight solid core
+  bedPts.push(new THREE.Vector2(innerRimR, innerRimY - 0.25))
+  bedPts.push(new THREE.Vector2(0.001, innerRimY - 0.25))
+
+  const bedGeo = new THREE.LatheGeometry(bedPts, 64)
+  const bedTex = makeRiceBedTexture()
+  const bedMat = new THREE.MeshStandardMaterial({
+    map: bedTex,
+    roughness: 0.35,
+    metalness: 0.02,
+  })
+  const bedMesh = new THREE.Mesh(bedGeo, bedMat)
+  bedMesh.position.set(BOWL.x, 0, BOWL.z)
+  bedMesh.receiveShadow = true
+
+  return {
+    mesh,
+    bedMesh,
+    dispose: () => {
+      geo.dispose()
+      mat.dispose()
+      bedGeo.dispose()
+      bedMat.dispose()
+      bedTex.dispose()
+    },
+  }
 }
 
 /* ---------- grains ---------- */
@@ -762,7 +835,10 @@ function buildInstances(): Inst[] {
   const out: Inst[] = []
   const { R, H } = BOWL
   const topY = 0.07 + H
-  const RR = R - 0.12
+  const innerRimR = R - 0.065
+  const innerRimY = topY + 0.018
+  const peakH = 0.38
+
   const mk = (rest: THREE.Vector3, rot: THREE.Vector3, sc = 1) => {
     out.push({
       rest,
@@ -774,47 +850,114 @@ function buildInstances(): Inst[] {
     })
   }
 
-  // 1. Natural interlocking mound in the bowl (grains settle horizontally under gravity)
-  for (let i = 0; i < 920; i++) {
-    const rad = RR * Math.sqrt(r())
-    const ang = r() * Math.PI * 2
-    const dome = Math.pow(Math.max(0, 1 - (rad / RR) ** 1.8), 0.75)
-    const surf = topY + 0.02 + 0.34 * dome
-    const y = surf - r() * r() * 0.12
-    // Grains settle predominantly flat horizontally with subtle interlocking angle variation
-    const rot = new THREE.Vector3((r() - 0.5) * 0.24, r() * Math.PI * 2, (r() - 0.5) * 0.24)
-    const sc = 0.92 + r() * 0.16
+  // 1. DENSE RIM SEALING RING (300 grains)
+  // Completely eliminates any visible boundary gap between the brass rim and the rice mound
+  const rimGrains = 300
+  for (let i = 0; i < rimGrains; i++) {
+    const ang = (i / rimGrains) * Math.PI * 2 + (r() - 0.5) * 0.018
+    const rad = innerRimR * (0.97 + r() * 0.065)
+    const y = innerRimY + 0.012 + (r() - 0.4) * 0.025
+    const rot = new THREE.Vector3(
+      Math.sin(ang) * -0.22 + (r() - 0.5) * 0.28,
+      ang + Math.PI / 2 + (r() - 0.5) * 0.35,
+      Math.cos(ang) * -0.22 + (r() - 0.5) * 0.28,
+    )
+    const sc = 0.95 + r() * 0.16
     mk(new THREE.Vector3(BOWL.x + Math.cos(ang) * rad, y, BOWL.z + Math.sin(ang) * rad), rot, sc)
   }
 
-  // 2. Realistic spilled grain pile and perimeter fan on the surface
-  let placed = 0
-  while (placed < 460) {
-    const spill = r() < 0.5
-    let x: number
-    let z: number
-    let y = 0.032
-    if (spill) {
-      const u = r()
-      x = BOWL.x - 1.0 - u * 2.2 + (r() - 0.5) * 0.7 * (0.3 + u)
-      z = BOWL.z + 0.5 + Math.sin(u * 2.4) * 0.6 + (r() - 0.5) * 0.8 * (0.2 + u)
-      y = 0.03 + (1 - u) * 0.08 * (r() * 0.6 + 0.4) // thicker mound near bowl edge
-    } else {
-      const a = r() * Math.PI * 2
-      const d = 1.22 + Math.abs(r() + r() - 1) * 1.3
-      x = BOWL.x + Math.cos(a) * d
-      z = BOWL.z + Math.sin(a) * d * 0.8
-    }
-    if (Math.hypot(x - BOWL.x, z - BOWL.z) < 1.25) continue
-    if (Math.abs(x + 1.35) < 1.5 && z < 0.4) continue
-    if (z > 3.2 || z < -0.6) continue
+  // 2. HEAPED OVERFLOWING RICE MOUND (2,500 grains)
+  // Multi-layered interlocking grains spanning from crest dome down across the rim
+  for (let i = 0; i < 2500; i++) {
+    const u = Math.sqrt(r())
+    const rad = u * innerRimR * 0.985
+    const ang = r() * Math.PI * 2
+    const frac = rad / innerRimR
+    const dome = Math.pow(Math.max(0, 1 - Math.pow(frac, 1.75)), 0.76)
+    const surf = innerRimY + peakH * dome
 
-    // Spilled grains lie flat against the ground
-    const rot = new THREE.Vector3((r() - 0.5) * 0.12, r() * Math.PI * 2, (r() - 0.5) * 0.12)
-    const sc = 0.92 + r() * 0.16
+    const layerType = r()
+    const depth = layerType < 0.60
+      ? 0.014 * r()
+      : layerType < 0.88
+        ? 0.038 + 0.025 * r()
+        : 0.075 + 0.04 * r()
+    const y = surf - depth
+
+    const slope = -Math.atan2(peakH * 1.75 * Math.pow(frac, 0.75), innerRimR) * 0.45
+    const rot = new THREE.Vector3(
+      Math.sin(ang) * slope + (r() - 0.5) * 0.32,
+      r() * Math.PI * 2,
+      Math.cos(ang) * slope + (r() - 0.5) * 0.32,
+    )
+    const sc = 0.92 + r() * 0.18
+    mk(new THREE.Vector3(BOWL.x + Math.cos(ang) * rad, y, BOWL.z + Math.sin(ang) * rad), rot, sc)
+  }
+
+  // 3. GENEROUS GROUND CASCADE SPILL (950 grains)
+  // Cascades over the front-left rim of the bowl and fans toward the sack
+  for (let i = 0; i < 950; i++) {
+    const u = r()
+    const d = 0.85 + u * 2.4
+    const spreadW = 0.22 + u * 0.85
+    const lateral = (r() - 0.5) * spreadW
+
+    const baseAngle = Math.PI * 0.82 + Math.sin(u * 2.1) * 0.28
+    const x = BOWL.x + Math.cos(baseAngle) * d + lateral * Math.sin(baseAngle)
+    const z = BOWL.z + Math.sin(baseAngle) * d * 0.95 - lateral * Math.cos(baseAngle)
+
+    let y: number
+    if (d < 1.35) {
+      const pourFrac = (1.35 - d) / 0.5
+      y = 0.04 + pourFrac * 0.48 * (0.6 + 0.4 * r())
+    } else {
+      const moundCenter = 1 - Math.abs(lateral / (spreadW * 0.5 + 0.001))
+      y = 0.022 + moundCenter * (1 - u * 0.7) * 0.045 * (0.5 + 0.5 * r())
+    }
+
+    const rot = new THREE.Vector3(
+      (r() - 0.5) * 0.16,
+      baseAngle + (r() - 0.5) * 1.2,
+      (r() - 0.5) * 0.16,
+    )
+    const sc = 0.92 + r() * 0.18
     mk(new THREE.Vector3(x, y, z), rot, sc)
+  }
+
+  // 4. PLATTER BASE PERIMETER HEAP (650 grains)
+  // Grains pooled tightly around the brass platter base
+  for (let i = 0; i < 650; i++) {
+    const ang = r() * Math.PI * 2
+    const dist = 1.14 + Math.pow(r(), 1.6) * 0.45
+    const x = BOWL.x + Math.cos(ang) * dist
+    const z = BOWL.z + Math.sin(ang) * dist * 0.88
+    const closeness = Math.max(0, 1 - (dist - 1.14) / 0.45)
+    const y = 0.022 + closeness * 0.035 * r()
+
+    const rot = new THREE.Vector3((r() - 0.5) * 0.14, r() * Math.PI * 2, (r() - 0.5) * 0.14)
+    const sc = 0.90 + r() * 0.18
+    mk(new THREE.Vector3(x, y, z), rot, sc)
+  }
+
+  // 5. EXTENDED FLOOR SCATTER & DRIFTS (800 grains)
+  // Loose artistic stray grains scattered across the entire studio table
+  let placed = 0
+  let attempts = 0
+  while (placed < 800 && attempts < 2500) {
+    attempts++
+    const gx = -2.8 + r() * 5.8
+    const gz = -0.5 + r() * 3.8
+
+    if (Math.abs(gx - (-1.35)) < 1.15 && Math.abs(gz - (-0.48)) < 0.42) continue
+    if (Math.hypot(gx - BOWL.x, gz - BOWL.z) < 1.12) continue
+
+    const gy = 0.021 + r() * 0.008
+    const rot = new THREE.Vector3((r() - 0.5) * 0.10, r() * Math.PI * 2, (r() - 0.5) * 0.10)
+    const sc = 0.90 + r() * 0.20
+    mk(new THREE.Vector3(gx, gy, gz), rot, sc)
     placed++
   }
+
   return out
 }
 
@@ -907,9 +1050,15 @@ export default function FinalScene(props: Props) {
     bowlContact.position.set(BOWL.x, 0.004, BOWL.z)
     scene.add(bowlContact)
 
+    // Soft contact shadow under the spilled rice cascade
+    const spillContact = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 1.8), contactMat)
+    spillContact.rotation.x = -Math.PI / 2
+    spillContact.position.set(BOWL.x - 1.0, 0.003, BOWL.z + 0.45)
+    scene.add(spillContact)
+
     const bag = makeBag(P.current.name)
     const bowl = makeBowl()
-    scene.add(bag.group, bowl.mesh)
+    scene.add(bag.group, bowl.mesh, bowl.bedMesh)
 
     // Translucent grains for bowl and falling curtain
     const geo = makeGrainGeometry(false)
@@ -1049,6 +1198,9 @@ export default function FinalScene(props: Props) {
       camera.lookAt(tgt)
 
       bag.group.position.y = 1.93 - (1 - sm(t, 0.1, 0.6)) * 0.35
+      const bedProgress = sm(t, 0.04, 0.36)
+      bowl.bedMesh.scale.set(1, 0.2 + 0.8 * bedProgress, 1)
+      bowl.bedMesh.position.y = (1 - bedProgress) * -0.06
       renderer.toneMappingExposure = 0.82 + 0.25 * tc
       renderer.render(scene, camera)
     }
@@ -1079,6 +1231,7 @@ export default function FinalScene(props: Props) {
       groundTex.dispose()
       bagContact.geometry.dispose()
       bowlContact.geometry.dispose()
+      spillContact.geometry.dispose()
       contactMat.dispose()
       contactTex.dispose()
       pm.dispose()
