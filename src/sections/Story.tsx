@@ -522,11 +522,11 @@ function Final({ p }: { p: number; sel: number }) {
       className="absolute inset-0"
       style={{
         ...layer(o),
-        background: 'radial-gradient(ellipse at 42% 44%, #fff9ee 0%, #f6ecdc 32%, #ebdcc0 65%, #d5c39f 100%)',
+        background: 'radial-gradient(ellipse at 40% 42%, #2d313a 0%, #20232a 45%, #15171b 100%)',
       }}
     >
       {/* Subtle photographic studio spotlight & vignette */}
-      <div className="pointer-events-none absolute inset-0 bg-radial-[circle_at_38%_42%_from_transparent_to_black/12]" />
+      <div className="pointer-events-none absolute inset-0 bg-radial-[circle_at_38%_42%_from_transparent_to_black/30]" />
 
       <div className="absolute inset-x-0 top-0 h-[54%] md:inset-y-0 md:h-full">
         <FinalScene t={t} visible={o > 0.005} mm={kesharkali.mm} width={kesharkali.width} name="Keshar Kali" shift={wide ? 0.21 : 0} />
@@ -534,37 +534,37 @@ function Final({ p }: { p: number; sel: number }) {
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[46%] flex-col justify-center px-6 pb-5 md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-[38%] md:justify-center md:px-0 md:pr-14 md:pb-0">
         <div className="pointer-events-auto">
-          <div style={rise(1, 0)}><Label>The Final Product · Flagship Packaging</Label></div>
-          <h2 className="mt-2 text-[clamp(2.2rem,5vw,4.2rem)] font-light leading-[1.02] tracking-tight" style={rise(1, 0.1)}>Keshar Kali</h2>
-          <p className="mt-1 font-serif text-base italic text-[#b8860b] md:text-lg" style={rise(1, 0.15)}>Premium Wada Kolam Rice · Khila Khila Dana</p>
-          <p className="mt-2 max-w-sm text-sm text-earth/75 md:mt-3 md:text-base" style={rise(1, 0.2)}>
+          <div style={rise(1, 0)}><Label light>The Final Product · Flagship Packaging</Label></div>
+          <h2 className="mt-2 text-[clamp(2.2rem,5vw,4.2rem)] font-light leading-[1.02] tracking-tight text-white" style={rise(1, 0.1)}>Keshar Kali</h2>
+          <p className="mt-1 font-serif text-base italic text-[#f8c73c] md:text-lg" style={rise(1, 0.15)}>Premium Wada Kolam Rice · Khila Khila Dana</p>
+          <p className="mt-2 max-w-sm text-sm text-white/80 md:mt-3 md:text-base" style={rise(1, 0.2)}>
             Authentic export packaging: high-barrier laminated BOPP sack, stitched white crepe band, red chain thread, and golden side gussets.
           </p>
-          <dl className="mt-4 grid max-w-sm grid-cols-3 gap-x-4 border-t border-earth/15 pt-3 text-sm md:mt-6 md:pt-4" style={rise(1, 0.3)}>
+          <dl className="mt-4 grid max-w-sm grid-cols-3 gap-x-4 border-t border-white/20 pt-3 text-sm md:mt-6 md:pt-4" style={rise(1, 0.3)}>
             {[['Length', kesharkali.len], ['Texture', 'Fluffy & Separate'], ['Packing', '30 kg & 26 kg']].map(([k, val]) => (
               <div key={k}>
-                <dt className="text-[10px] uppercase tracking-[0.22em] text-earth/50">{k}</dt>
-                <dd className="mt-0.5 font-medium">{val}</dd>
+                <dt className="text-[10px] uppercase tracking-[0.22em] text-white/50">{k}</dt>
+                <dd className="mt-0.5 font-medium text-white">{val}</dd>
               </div>
             ))}
           </dl>
           <div className="mt-4 grid max-w-sm grid-cols-2 gap-2 md:mt-6 md:gap-3" style={rise(1, 0.4)}>
             <button
               onClick={() => scrollToTarget('products')}
-              className="rounded-full bg-earth px-4 py-3.5 text-center text-sm font-medium text-rice transition-all hover:bg-paddy shadow-md active:scale-95 cursor-pointer"
+              className="rounded-full border border-white/25 bg-white/10 hover:bg-white/20 px-4 py-3.5 text-center text-sm font-medium text-white transition-all shadow-md active:scale-95 cursor-pointer backdrop-blur-md"
             >
               Explore Products
             </button>
             <button
               onClick={() => scrollToTarget('quote')}
-              className="rounded-full border border-earth/20 bg-gold px-4 py-3.5 text-center text-sm font-bold text-earth transition-all hover:bg-[#d8a846] shadow-md active:scale-95 cursor-pointer"
+              className="rounded-full bg-gradient-to-r from-[#e5b842] to-[#caa030] text-black font-semibold hover:brightness-110 px-4 py-3.5 text-center text-sm transition-all shadow-lg shadow-gold/20 active:scale-95 cursor-pointer"
             >
               Request a Quote →
             </button>
           </div>
           <div className="mt-5 md:mt-9" style={{ opacity: close, transform: `translate3d(0, ${(1 - close) * 18}px, 0)` }}>
-            <p className="font-serif text-2xl italic leading-none md:text-4xl">Quality in Every Grain.</p>
-            <p className="mt-2 text-[11px] text-earth/60 md:text-xs">Carefully sourced. Thoughtfully processed. Delivered with trust.</p>
+            <p className="font-serif text-2xl italic leading-none text-white md:text-4xl">Quality in Every Grain.</p>
+            <p className="mt-2 text-[11px] text-white/60 md:text-xs">Carefully sourced. Thoughtfully processed. Delivered with trust.</p>
           </div>
         </div>
       </div>
@@ -593,7 +593,7 @@ function Chrome({
     <>
       {/* Persistent Floating Navigation Bar — Ultra-Clean Translucent Glass */}
       <header className="fixed inset-x-3 top-3 z-40 md:inset-x-8 md:top-5">
-        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-white/20 bg-black/15 hover:bg-black/25 px-4 py-2 text-white backdrop-blur-xl shadow-lg shadow-black/10 transition-all duration-500 md:px-6 md:py-2.5">
+        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-white/15 bg-white/[0.08] hover:bg-white/[0.14] px-4 py-2 text-white backdrop-blur-md shadow-sm transition-all duration-300 md:px-6 md:py-2.5">
           {/* Logo / Brand */}
           <button
             onClick={() => scrollToTarget('top')}
@@ -607,25 +607,25 @@ function Chrome({
           <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
             <button
               onClick={() => go(0)}
-              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer"
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer drop-shadow-sm"
             >
               Story
             </button>
             <button
               onClick={() => scrollToTarget('products')}
-              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer"
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer drop-shadow-sm"
             >
               Collection
             </button>
             <button
               onClick={() => scrollToTarget('heritage')}
-              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer"
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer drop-shadow-sm"
             >
               Heritage
             </button>
             <button
               onClick={() => scrollToTarget('voices')}
-              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer"
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer drop-shadow-sm"
             >
               Voices
             </button>
@@ -636,7 +636,7 @@ function Chrome({
             {/* Skip to Quote button - Translucent gold pill */}
             <button
               onClick={() => scrollToTarget('quote')}
-              className="group flex items-center gap-1.5 rounded-full border border-gold/70 bg-gold/25 hover:bg-gold/45 text-amber-200 hover:text-white px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] backdrop-blur-sm transition-all hover:shadow-md active:scale-95 cursor-pointer"
+              className="group flex items-center gap-1.5 rounded-full border border-gold/60 bg-gold/20 hover:bg-gold/35 text-amber-200 hover:text-white px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] backdrop-blur-sm transition-all hover:shadow-md active:scale-95 cursor-pointer"
               title="Skip directly to quote desk"
             >
               <span>Skip to Quote</span>
@@ -649,7 +649,7 @@ function Chrome({
               className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] backdrop-blur-sm transition-all active:scale-95 cursor-pointer ${
                 partnerUser
                   ? 'border-gold/60 bg-gold/25 text-gold hover:bg-gold/35'
-                  : 'border-white/25 bg-white/10 text-white/90 hover:bg-white/20 hover:border-white/50'
+                  : 'border-white/20 bg-white/[0.08] text-white/90 hover:bg-white/[0.18] hover:border-white/40'
               }`}
               title="Trade & Wholesale Portal"
             >

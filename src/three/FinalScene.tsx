@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { makeGrainGeometry, makeGrainMaterial } from './grain'
-import { KESHAR_KALI_BAG_IMAGE } from './kesharKaliBagData'
 
 type Props = { t: number; visible: boolean; mm: number; width: number; name: string; shift: number }
 
@@ -78,11 +77,11 @@ function makeContactShadowTexture(): THREE.CanvasTexture {
   cv.width = 512
   cv.height = 512
   const ctx = cv.getContext('2d')!
-  const grad = ctx.createRadialGradient(256, 256, 24, 256, 256, 240)
-  grad.addColorStop(0, 'rgba(38, 20, 10, 0.88)')
-  grad.addColorStop(0.24, 'rgba(48, 26, 14, 0.62)')
-  grad.addColorStop(0.56, 'rgba(62, 34, 18, 0.26)')
-  grad.addColorStop(0.85, 'rgba(80, 48, 25, 0.07)')
+  const grad = ctx.createRadialGradient(256, 256, 20, 256, 256, 240)
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0.96)')
+  grad.addColorStop(0.24, 'rgba(0, 0, 0, 0.75)')
+  grad.addColorStop(0.58, 'rgba(0, 0, 0, 0.32)')
+  grad.addColorStop(0.85, 'rgba(0, 0, 0, 0.08)')
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)')
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, 512, 512)
@@ -90,39 +89,46 @@ function makeContactShadowTexture(): THREE.CanvasTexture {
   return tex
 }
 
-/* ---------- warm studio table / floor texture ---------- */
+/* ---------- dark slate studio table / floor texture ---------- */
 function makeStudioGroundTexture(): THREE.CanvasTexture {
   const cv = document.createElement('canvas')
   cv.width = 1024
   cv.height = 1024
   const ctx = cv.getContext('2d')!
-  const grad = ctx.createRadialGradient(512, 512, 80, 512, 512, 512)
-  grad.addColorStop(0, '#fef9ee')
-  grad.addColorStop(0.35, '#f5ebd7')
-  grad.addColorStop(0.7, '#e4d4b7')
-  grad.addColorStop(1, '#cdbc98')
+  const grad = ctx.createRadialGradient(512, 512, 60, 512, 512, 512)
+  grad.addColorStop(0, '#2e333d')
+  grad.addColorStop(0.35, '#242830')
+  grad.addColorStop(0.7, '#1b1e24')
+  grad.addColorStop(1, '#131518')
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, 1024, 1024)
   const tex = new THREE.CanvasTexture(cv)
   return tex
 }
 
-/* ---------- Keshar Kali image loader ---------- */
+/* ---------- Keshar Kali image loader (high-res user upload) ---------- */
 let cachedBagImg: HTMLImageElement | null = null
 function getKesharBagImage(onLoad?: () => void): HTMLImageElement | null {
   if (typeof window === 'undefined') return null
   if (!cachedBagImg) {
     cachedBagImg = new Image()
     if (onLoad) cachedBagImg.onload = onLoad
-    cachedBagImg.src = KESHAR_KALI_BAG_IMAGE
-  } else if (onLoad && !cachedBagImg.complete) {
-    const prev = cachedBagImg.onload
-    cachedBagImg.onload = (e) => {
-      if (prev) (prev as (ev: Event) => void)(e)
-      onLoad()
+    cachedBagImg.src = '/images/kesharkali_front_render.png'
+  } else if (onLoad) {
+    if (cachedBagImg.complete && cachedBagImg.naturalWidth > 0) {
+      setTimeout(onLoad, 0)
+    } else {
+      const prev = cachedBagImg.onload
+      cachedBagImg.onload = (e) => {
+        if (prev) (prev as (ev: Event) => void)(e)
+        onLoad()
+      }
     }
   }
   return cachedBagImg
+}
+if (typeof window !== 'undefined') {
+  getKesharBagImage()
 }
 
 /* ---------- stitched tape texture (white crepe + red thread) ---------- */
@@ -369,58 +375,65 @@ function drawBag(cv: HTMLCanvasElement, _name: string, front: boolean, onImgLoad
     }
   }
 
-  // 2. Golden-Yellow Side Gussets
-  const gussetW = W * 0.125
-  const goldGradL = ctx.createLinearGradient(0, 0, gussetW, 0)
-  goldGradL.addColorStop(0, '#df9b15')
-  goldGradL.addColorStop(0.5, '#f8c73c')
-  goldGradL.addColorStop(1, '#cb8a0e')
-  ctx.fillStyle = goldGradL
-  ctx.fillRect(0, 0, gussetW, H)
-
-  const goldGradR = ctx.createLinearGradient(W - gussetW, 0, W, 0)
-  goldGradR.addColorStop(0, '#cb8a0e')
-  goldGradR.addColorStop(0.5, '#f8c73c')
-  goldGradR.addColorStop(1, '#df9b15')
-  ctx.fillStyle = goldGradR
-  ctx.fillRect(W - gussetW, 0, gussetW, H)
-
-  // Gusset inner boundary red pinstripes
-  ctx.fillStyle = '#3a060f'
-  ctx.fillRect(gussetW - 3, 0, 3, H)
-  ctx.fillRect(W - gussetW, 0, 3, H)
-
-  // Gusset vertical typography
-  ctx.save()
-  ctx.fillStyle = '#5c0d16'
-  ctx.font = '900 24px Manrope, sans-serif'
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '10px'
-  ctx.translate(gussetW / 2, H * 0.5)
-  ctx.rotate(-Math.PI / 2)
-  ctx.textAlign = 'center'
-  ctx.fillText('KESHAR KALI ★ WADA KOLAM', 0, 8)
-  ctx.restore()
-
-  ctx.save()
-  ctx.fillStyle = '#5c0d16'
-  ctx.font = '900 24px Manrope, sans-serif'
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '10px'
-  ctx.translate(W - gussetW / 2, H * 0.5)
-  ctx.rotate(Math.PI / 2)
-  ctx.textAlign = 'center'
-  ctx.fillText('KESHAR KALI ★ WADA KOLAM', 0, 8)
-  ctx.restore()
-
-  // 3. Composite the authentic Keshar Kali bag image
+  // 2. Check if authentic Keshar Kali 3D packaging render is loaded
   const img = getKesharBagImage(onImgLoad)
   if (img && img.complete && img.naturalWidth > 0) {
-    const drawX = gussetW
-    const drawY = H * 0.045
-    const drawW = W - gussetW * 2
-    const drawH = H * 0.895
-    ctx.drawImage(img, drawX, drawY, drawW, drawH)
+    const nw = img.naturalWidth
+    const nh = img.naturalHeight
+    // Crop strictly to the bag boundaries from the high-resolution studio render
+    // Bounding box: minX=182, maxX=526, minY=57, maxY=598 (size: 616x658)
+    const sx = nw * 0.293
+    const sy = nh * 0.084
+    const sw = nw * 0.560
+    const sh = nh * 0.825
+
+    // Draw authentic Keshar Kali packaging artwork across front face
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H)
   } else {
-    // Procedural rendering fallback if image is loading
+    // Procedural Fallback while image is loading
+    // Golden-Yellow Side Gussets
+    const gussetW = W * 0.125
+    const goldGradL = ctx.createLinearGradient(0, 0, gussetW, 0)
+    goldGradL.addColorStop(0, '#df9b15')
+    goldGradL.addColorStop(0.5, '#f8c73c')
+    goldGradL.addColorStop(1, '#cb8a0e')
+    ctx.fillStyle = goldGradL
+    ctx.fillRect(0, 0, gussetW, H)
+
+    const goldGradR = ctx.createLinearGradient(W - gussetW, 0, W, 0)
+    goldGradR.addColorStop(0, '#cb8a0e')
+    goldGradR.addColorStop(0.5, '#f8c73c')
+    goldGradR.addColorStop(1, '#df9b15')
+    ctx.fillStyle = goldGradR
+    ctx.fillRect(W - gussetW, 0, gussetW, H)
+
+    // Gusset inner boundary red pinstripes
+    ctx.fillStyle = '#3a060f'
+    ctx.fillRect(gussetW - 3, 0, 3, H)
+    ctx.fillRect(W - gussetW, 0, 3, H)
+
+    // Gusset vertical typography
+    ctx.save()
+    ctx.fillStyle = '#5c0d16'
+    ctx.font = '900 24px Manrope, sans-serif'
+    ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '10px'
+    ctx.translate(gussetW / 2, H * 0.5)
+    ctx.rotate(-Math.PI / 2)
+    ctx.textAlign = 'center'
+    ctx.fillText('KESHAR KALI ★ WADA KOLAM', 0, 8)
+    ctx.restore()
+
+    ctx.save()
+    ctx.fillStyle = '#5c0d16'
+    ctx.font = '900 24px Manrope, sans-serif'
+    ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '10px'
+    ctx.translate(W - gussetW / 2, H * 0.5)
+    ctx.rotate(Math.PI / 2)
+    ctx.textAlign = 'center'
+    ctx.fillText('KESHAR KALI ★ WADA KOLAM', 0, 8)
+    ctx.restore()
+
+    // Procedural emblem & cartouche
     const emblemY = H * 0.22
     ctx.textAlign = 'center'
     ctx.textBaseline = 'alphabetic'
@@ -454,57 +467,57 @@ function drawBag(cv: HTMLCanvasElement, _name: string, front: boolean, onImgLoad
     ctx.fillStyle = '#ffffff'
     ctx.font = 'italic 700 48px Georgia, serif'
     ctx.fillText('Khila Khila Dana', W / 2, H * 0.60)
+
+    // White Crepe Top Hem with Red Stitching
+    const topTapeH = H * 0.075
+    ctx.fillStyle = '#fbf7ee'
+    ctx.fillRect(0, 0, W, topTapeH)
+    ctx.fillStyle = '#cfa035'
+    ctx.fillRect(0, topTapeH - 3, W, 3)
+
+    // Top tape text
+    ctx.fillStyle = '#5e0f1e'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.font = '800 20px Manrope, sans-serif'
+    ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '6px'
+    ctx.fillText('★ KESHAR KALI ★ KHILA KHILA DANA ★', W / 2, topTapeH * 0.44)
+    ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
+
+    // Red chain stitch line across top
+    ctx.strokeStyle = '#c61d23'
+    ctx.lineWidth = 3.5
+    ctx.setLineDash([14, 10])
+    ctx.beginPath()
+    ctx.moveTo(0, topTapeH * 0.8)
+    ctx.lineTo(W, topTapeH * 0.8)
+    ctx.stroke()
+    ctx.setLineDash([])
+
+    // Bottom Folded Hem
+    const btmH = H * 0.05
+    ctx.fillStyle = '#4a0b16'
+    ctx.fillRect(0, H - btmH, W, btmH)
+    ctx.fillStyle = '#cfa035'
+    ctx.fillRect(0, H - btmH, W, 3)
+
+    ctx.strokeStyle = '#c61d23'
+    ctx.lineWidth = 3.5
+    ctx.setLineDash([14, 10])
+    ctx.beginPath()
+    ctx.moveTo(0, H - btmH * 0.4)
+    ctx.lineTo(W, H - btmH * 0.4)
+    ctx.stroke()
+    ctx.setLineDash([])
   }
 
-  // 4. White Crepe Top Hem with Red Stitching
-  const topTapeH = H * 0.075
-  ctx.fillStyle = '#fbf7ee'
-  ctx.fillRect(0, 0, W, topTapeH)
-  ctx.fillStyle = '#cfa035'
-  ctx.fillRect(0, topTapeH - 3, W, 3)
-
-  // Top tape text
-  ctx.fillStyle = '#5e0f1e'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.font = '800 20px Manrope, sans-serif'
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '6px'
-  ctx.fillText('★ KESHAR KALI ★ KHILA KHILA DANA ★', W / 2, topTapeH * 0.44)
-  ;(ctx as unknown as { letterSpacing: string }).letterSpacing = '0px'
-
-  // Red chain stitch line across top
-  ctx.strokeStyle = '#c61d23'
-  ctx.lineWidth = 3.5
-  ctx.setLineDash([14, 10])
-  ctx.beginPath()
-  ctx.moveTo(0, topTapeH * 0.8)
-  ctx.lineTo(W, topTapeH * 0.8)
-  ctx.stroke()
-  ctx.setLineDash([])
-
-  // 5. Bottom Folded Hem
-  const btmH = H * 0.05
-  ctx.fillStyle = '#4a0b16'
-  ctx.fillRect(0, H - btmH, W, btmH)
-  ctx.fillStyle = '#cfa035'
-  ctx.fillRect(0, H - btmH, W, 3)
-
-  ctx.strokeStyle = '#c61d23'
-  ctx.lineWidth = 3.5
-  ctx.setLineDash([14, 10])
-  ctx.beginPath()
-  ctx.moveTo(0, H - btmH * 0.4)
-  ctx.lineTo(W, H - btmH * 0.4)
-  ctx.stroke()
-  ctx.setLineDash([])
-
-  // 6. Cylindrical Volume & Fabric Weave Lighting Vignette
+  // Cylindrical Volume & Fabric Weave Lighting Vignette
   const vig = ctx.createLinearGradient(0, 0, W, 0)
-  vig.addColorStop(0, 'rgba(20, 5, 8, 0.38)')
-  vig.addColorStop(0.12, 'rgba(20, 5, 8, 0.08)')
-  vig.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)')
-  vig.addColorStop(0.88, 'rgba(20, 5, 8, 0.08)')
-  vig.addColorStop(1, 'rgba(20, 5, 8, 0.38)')
+  vig.addColorStop(0, 'rgba(20, 5, 8, 0.28)')
+  vig.addColorStop(0.12, 'rgba(20, 5, 8, 0.04)')
+  vig.addColorStop(0.5, 'rgba(255, 255, 255, 0.07)')
+  vig.addColorStop(0.88, 'rgba(20, 5, 8, 0.04)')
+  vig.addColorStop(1, 'rgba(20, 5, 8, 0.28)')
   ctx.fillStyle = vig
   ctx.fillRect(0, 0, W, H)
 }
