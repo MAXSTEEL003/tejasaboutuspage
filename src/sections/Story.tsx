@@ -518,7 +518,16 @@ function Final({ p }: { p: number; sel: number }) {
   const rise = (k: number, d = 0) => ({ opacity: seg(info, d, d + 0.6) * k, transform: `translate3d(0, ${(1 - seg(info, d, d + 0.6)) * 26}px, 0)` })
 
   return (
-    <div className="absolute inset-0" style={{ ...layer(o), background: 'linear-gradient(180deg, #f0e7d2 0%, #e6dabf 55%, #d6c6a2 100%)' }}>
+    <div
+      className="absolute inset-0"
+      style={{
+        ...layer(o),
+        background: 'radial-gradient(ellipse at 42% 44%, #fff9ee 0%, #f6ecdc 32%, #ebdcc0 65%, #d5c39f 100%)',
+      }}
+    >
+      {/* Subtle photographic studio spotlight & vignette */}
+      <div className="pointer-events-none absolute inset-0 bg-radial-[circle_at_38%_42%_from_transparent_to_black/12]" />
+
       <div className="absolute inset-x-0 top-0 h-[54%] md:inset-y-0 md:h-full">
         <FinalScene t={t} visible={o > 0.005} mm={kesharkali.mm} width={kesharkali.width} name="Keshar Kali" shift={wide ? 0.21 : 0} />
       </div>
@@ -582,13 +591,13 @@ function Chrome({
 
   return (
     <>
-      {/* Persistent Floating Navigation Bar */}
+      {/* Persistent Floating Navigation Bar — Ultra-Clean Translucent Glass */}
       <header className="fixed inset-x-3 top-3 z-40 md:inset-x-8 md:top-5">
-        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-white/20 bg-earth/85 px-4 py-2 text-rice backdrop-blur-md shadow-xl transition-all duration-300 md:px-6 md:py-2.5">
+        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-white/20 bg-black/15 hover:bg-black/25 px-4 py-2 text-white backdrop-blur-xl shadow-lg shadow-black/10 transition-all duration-500 md:px-6 md:py-2.5">
           {/* Logo / Brand */}
           <button
             onClick={() => scrollToTarget('top')}
-            className="flex items-center gap-2 text-left text-rice hover:text-white transition focus:outline-none cursor-pointer"
+            className="flex items-center gap-2 text-left text-white hover:text-gold transition focus:outline-none cursor-pointer"
             aria-label="Back to top"
           >
             <Logo />
@@ -598,25 +607,25 @@ function Chrome({
           <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
             <button
               onClick={() => go(0)}
-              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rice/75 hover:text-white transition cursor-pointer"
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer"
             >
               Story
             </button>
             <button
               onClick={() => scrollToTarget('products')}
-              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rice/75 hover:text-white transition cursor-pointer"
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer"
             >
               Collection
             </button>
             <button
               onClick={() => scrollToTarget('heritage')}
-              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rice/75 hover:text-white transition cursor-pointer"
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer"
             >
               Heritage
             </button>
             <button
               onClick={() => scrollToTarget('voices')}
-              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rice/75 hover:text-white transition cursor-pointer"
+              className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80 hover:text-white transition cursor-pointer"
             >
               Voices
             </button>
@@ -624,23 +633,23 @@ function Chrome({
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2 md:gap-3">
-            {/* Skip to Quote button - Prominent CTA */}
+            {/* Skip to Quote button - Translucent gold pill */}
             <button
               onClick={() => scrollToTarget('quote')}
-              className="group flex items-center gap-1.5 rounded-full bg-gold px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-earth transition-all hover:bg-[#d8a846] hover:shadow-md active:scale-95 shadow-sm cursor-pointer"
+              className="group flex items-center gap-1.5 rounded-full border border-gold/70 bg-gold/25 hover:bg-gold/45 text-amber-200 hover:text-white px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] backdrop-blur-sm transition-all hover:shadow-md active:scale-95 cursor-pointer"
               title="Skip directly to quote desk"
             >
               <span>Skip to Quote</span>
               <span className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
             </button>
 
-            {/* Sign In / Partner Portal Button */}
+            {/* Sign In / Partner Portal Button - Translucent frosted pill */}
             <button
               onClick={openAuthModal}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] transition-all active:scale-95 cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] backdrop-blur-sm transition-all active:scale-95 cursor-pointer ${
                 partnerUser
-                  ? 'border-gold/60 bg-gold/20 text-gold hover:bg-gold/30'
-                  : 'border-rice/30 bg-rice/10 text-rice hover:bg-rice/20 hover:border-rice/60'
+                  ? 'border-gold/60 bg-gold/25 text-gold hover:bg-gold/35'
+                  : 'border-white/25 bg-white/10 text-white/90 hover:bg-white/20 hover:border-white/50'
               }`}
               title="Trade & Wholesale Portal"
             >
@@ -658,7 +667,7 @@ function Chrome({
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-rice/25 text-rice md:hidden hover:bg-rice/10 cursor-pointer"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 text-white md:hidden hover:bg-white/15 cursor-pointer"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? '✕' : '☰'}
@@ -668,9 +677,9 @@ function Chrome({
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="mt-2 rounded-2xl border border-white/20 bg-earth/95 p-4 text-rice backdrop-blur-xl shadow-2xl md:hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="mt-2 rounded-2xl border border-white/20 bg-black/80 p-4 text-white backdrop-blur-2xl shadow-2xl md:hidden animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="flex flex-col space-y-3">
-              <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-rice/40 pb-1 border-b border-rice/10">
+              <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/50 pb-1 border-b border-white/15">
                 Scenes & Exploration
               </div>
               {CHAPTERS.map((c) => (
@@ -680,19 +689,19 @@ function Chrome({
                     go(c.at)
                     setMobileMenuOpen(false)
                   }}
-                  className="flex items-center justify-between text-left text-xs font-medium text-rice/80 hover:text-white py-1 cursor-pointer"
+                  className="flex items-center justify-between text-left text-xs font-medium text-white/80 hover:text-white py-1 cursor-pointer"
                 >
                   <span>Scene · {c.name}</span>
-                  <span className="text-[10px] text-rice/40">Jump →</span>
+                  <span className="text-[10px] text-white/40">Jump →</span>
                 </button>
               ))}
-              <div className="pt-2 border-t border-rice/10 flex flex-col space-y-2">
+              <div className="pt-2 border-t border-white/15 flex flex-col space-y-2">
                 <button
                   onClick={() => {
                     scrollToTarget('products')
                     setMobileMenuOpen(false)
                   }}
-                  className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-rice/90 py-1 cursor-pointer"
+                  className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-white/90 py-1 cursor-pointer"
                 >
                   The Collection
                 </button>
@@ -701,7 +710,7 @@ function Chrome({
                     scrollToTarget('heritage')
                     setMobileMenuOpen(false)
                   }}
-                  className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-rice/90 py-1 cursor-pointer"
+                  className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-white/90 py-1 cursor-pointer"
                 >
                   Our Heritage
                 </button>
@@ -710,7 +719,7 @@ function Chrome({
                     scrollToTarget('voices')
                     setMobileMenuOpen(false)
                   }}
-                  className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-rice/90 py-1 cursor-pointer"
+                  className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-white/90 py-1 cursor-pointer"
                 >
                   Voices from the Trade
                 </button>
@@ -719,7 +728,7 @@ function Chrome({
                     scrollToTarget('quote')
                     setMobileMenuOpen(false)
                   }}
-                  className="w-full mt-2 rounded-full bg-gold py-2.5 text-center text-xs font-bold uppercase tracking-[0.16em] text-earth cursor-pointer"
+                  className="w-full mt-2 rounded-full border border-gold/70 bg-gold/30 hover:bg-gold/50 py-2.5 text-center text-xs font-bold uppercase tracking-[0.16em] text-amber-200 cursor-pointer"
                 >
                   Skip to Quote Desk →
                 </button>
@@ -728,7 +737,7 @@ function Chrome({
                     openAuthModal()
                     setMobileMenuOpen(false)
                   }}
-                  className="w-full rounded-full border border-rice/30 py-2.5 text-center text-xs font-semibold uppercase tracking-[0.16em] text-rice cursor-pointer"
+                  className="w-full rounded-full border border-white/25 bg-white/10 hover:bg-white/20 py-2.5 text-center text-xs font-semibold uppercase tracking-[0.16em] text-white cursor-pointer"
                 >
                   {partnerUser ? `Signed In: ${partnerUser.name}` : 'Partner Sign In'}
                 </button>
@@ -737,6 +746,7 @@ function Chrome({
           </div>
         )}
       </header>
+
 
       {/* Chapter Indicator Dots (Story View) */}
       <nav

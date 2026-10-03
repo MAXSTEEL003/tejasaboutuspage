@@ -72,6 +72,41 @@ function makeWovenSackBumpTexture(repeatX = 36, repeatY = 54): THREE.CanvasTextu
   return tex
 }
 
+/* ---------- soft contact shadow (ambient occlusion) texture ---------- */
+function makeContactShadowTexture(): THREE.CanvasTexture {
+  const cv = document.createElement('canvas')
+  cv.width = 512
+  cv.height = 512
+  const ctx = cv.getContext('2d')!
+  const grad = ctx.createRadialGradient(256, 256, 24, 256, 256, 240)
+  grad.addColorStop(0, 'rgba(38, 20, 10, 0.88)')
+  grad.addColorStop(0.24, 'rgba(48, 26, 14, 0.62)')
+  grad.addColorStop(0.56, 'rgba(62, 34, 18, 0.26)')
+  grad.addColorStop(0.85, 'rgba(80, 48, 25, 0.07)')
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)')
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, 512, 512)
+  const tex = new THREE.CanvasTexture(cv)
+  return tex
+}
+
+/* ---------- warm studio table / floor texture ---------- */
+function makeStudioGroundTexture(): THREE.CanvasTexture {
+  const cv = document.createElement('canvas')
+  cv.width = 1024
+  cv.height = 1024
+  const ctx = cv.getContext('2d')!
+  const grad = ctx.createRadialGradient(512, 512, 80, 512, 512, 512)
+  grad.addColorStop(0, '#fef9ee')
+  grad.addColorStop(0.35, '#f5ebd7')
+  grad.addColorStop(0.7, '#e4d4b7')
+  grad.addColorStop(1, '#cdbc98')
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, 1024, 1024)
+  const tex = new THREE.CanvasTexture(cv)
+  return tex
+}
+
 /* ---------- Keshar Kali image loader ---------- */
 let cachedBagImg: HTMLImageElement | null = null
 function getKesharBagImage(onLoad?: () => void): HTMLImageElement | null {
@@ -581,15 +616,15 @@ function makeBag(name: string) {
     new THREE.MeshPhysicalMaterial({
       map,
       bumpMap: bump,
-      bumpScale: 0.65,
-      roughness: 0.42, // Woven polypropylene with silky finish
-      metalness: 0.02,
+      bumpScale: 0.045, // Subtle realistic woven poly weave without blotches
+      roughness: 0.28,
+      metalness: 0.01,
       sheen: 0.75, // Fabric sheen catching light on woven fibers
-      sheenColor: new THREE.Color('#ffebb8'),
-      sheenRoughness: 0.35,
-      clearcoat: 0.2, // BOPP laminated film shine
-      clearcoatRoughness: 0.32,
-      side: THREE.DoubleSide,
+      sheenColor: new THREE.Color('#fff0d0'),
+      sheenRoughness: 0.3,
+      clearcoat: 0.45, // Authentic BOPP glossy protective film lamination
+      clearcoatRoughness: 0.16,
+      side: THREE.FrontSide,
     })
 
   const fm = mkMaterial(frontTex)
@@ -691,12 +726,12 @@ function makeBowl() {
   pts.push(new THREE.Vector2(0.001, 0.17))
   const geo = new THREE.LatheGeometry(pts, 96)
   const mat = new THREE.MeshPhysicalMaterial({
-    color: '#c49a3c', // Artisanal golden brass platter matching the Keshar Kali serving thali
-    roughness: 0.28,
-    metalness: 0.62,
-    clearcoat: 0.85,
-    clearcoatRoughness: 0.1,
-    sheen: 0.35,
+    color: '#d4a843', // Rich artisanal Indian spun brass platter
+    roughness: 0.22,
+    metalness: 0.72,
+    clearcoat: 0.65,
+    clearcoatRoughness: 0.12,
+    sheen: 0.4,
     side: THREE.DoubleSide,
   })
   const mesh = new THREE.Mesh(geo, mat)
@@ -795,33 +830,69 @@ export default function FinalScene(props: Props) {
     const scene = new THREE.Scene()
     const pm = new THREE.PMREMGenerator(renderer)
     scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture
-    scene.environmentIntensity = 0.65
+    scene.environmentIntensity = 0.75
 
-    // Primary warm sunlight
-    const sun = new THREE.DirectionalLight('#ffe8c6', 3.6)
-    sun.position.set(-5, 7.5, 5)
+    // Primary warm sunlight (soft studio spotlight key)
+    const sun = new THREE.DirectionalLight('#fff3df', 3.8)
+    sun.position.set(-4.5, 8.5, 5.5)
     sun.castShadow = true
     sun.shadow.mapSize.set(2048, 2048)
     const sc = sun.shadow.camera
     sc.left = -6; sc.right = 6; sc.top = 6; sc.bottom = -6; sc.near = 1; sc.far = 25
-    sun.shadow.radius = 6
-    sun.shadow.bias = -0.0004
+    sun.shadow.radius = 8
+    sun.shadow.bias = -0.0003
     sun.shadow.normalBias = 0.02
 
+    // Soft warm ambient light (eliminates harsh black shadows)
+    const amb = new THREE.AmbientLight('#faeedc', 0.85)
+
     // Soft sky fill
-    const fill = new THREE.DirectionalLight('#e2edd8', 0.9)
-    fill.position.set(6, 3, 4)
+    const fill = new THREE.DirectionalLight('#e0ecd8', 1.1)
+    fill.position.set(6, 3.5, 4)
 
-    // Back rim light (picks up bag woven sheen & rice translucency)
-    const backRim = new THREE.DirectionalLight('#ffffff', 1.8)
-    backRim.position.set(-2, 4, -5)
+    // Back rim light (picks up bag woven sheen, crepe tape & rice translucency)
+    const backRim = new THREE.DirectionalLight('#ffffff', 2.2)
+    backRim.position.set(-2, 4.5, -5)
 
-    scene.add(sun, fill, backRim)
+    // Warm floor bounce point light
+    const floorBounce = new THREE.PointLight('#fce5b3', 1.8, 8)
+    floorBounce.position.set(0.5, 0.4, 1.0)
 
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: 0.32 }))
+    scene.add(sun, amb, fill, backRim, floorBounce)
+
+    // Studio ground plane with subtle warm satin gradient
+    const groundTex = makeStudioGroundTexture()
+    const groundMat = new THREE.MeshStandardMaterial({
+      map: groundTex,
+      roughness: 0.65,
+      metalness: 0.02,
+    })
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), groundMat)
     ground.rotation.x = -Math.PI / 2
+    ground.position.y = -0.002
     ground.receiveShadow = true
     scene.add(ground)
+
+    // Contact shadows (Ambient Occlusion grounding)
+    const contactTex = makeContactShadowTexture()
+    const contactMat = new THREE.MeshBasicMaterial({
+      map: contactTex,
+      transparent: true,
+      opacity: 0.75,
+      depthWrite: false,
+    })
+
+    // Contact shadow directly beneath 30kg sack base
+    const bagContact = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.45), contactMat)
+    bagContact.rotation.x = -Math.PI / 2
+    bagContact.position.set(-1.35, 0.004, -0.48)
+    scene.add(bagContact)
+
+    // Contact shadow directly beneath brass bowl
+    const bowlContact = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), contactMat)
+    bowlContact.rotation.x = -Math.PI / 2
+    bowlContact.position.set(BOWL.x, 0.004, BOWL.z)
+    scene.add(bowlContact)
 
     const bag = makeBag(P.current.name)
     const bowl = makeBowl()
@@ -830,10 +901,10 @@ export default function FinalScene(props: Props) {
     // Translucent grains for bowl and falling curtain
     const geo = makeGrainGeometry(false)
     const mat = makeGrainMaterial({
-      color: '#fcf8ee',
-      transmission: 0.55,
-      thickness: 1.3,
-      roughness: 0.22,
+      color: '#fdfbf4',
+      transmission: 0.74,
+      thickness: 1.4,
+      roughness: 0.2,
       ior: 1.51,
     })
 
@@ -991,7 +1062,12 @@ export default function FinalScene(props: Props) {
       geo.dispose()
       mat.dispose()
       ground.geometry.dispose()
-      ;(ground.material as THREE.Material).dispose()
+      groundMat.dispose()
+      groundTex.dispose()
+      bagContact.geometry.dispose()
+      bowlContact.geometry.dispose()
+      contactMat.dispose()
+      contactTex.dispose()
       pm.dispose()
       renderer.dispose()
     }
