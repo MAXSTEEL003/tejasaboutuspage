@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { VARIETIES } from '../data'
 import { Grain, Label } from './Story'
 import { Reveal } from '../components/Reveal'
@@ -11,6 +12,7 @@ type Props = {
 }
 
 export default function Products({ sel, setSel, onSkipToQuote, openAuthModal }: Props) {
+  const [photoView, setPhotoView] = useState<'kitchen' | 'field'>('kitchen')
   const pick = (i: number) => setSel(i)
   const pickAndQuote = (i: number) => {
     setSel(i)
@@ -113,6 +115,113 @@ export default function Products({ sel, setSel, onSkipToQuote, openAuthModal }: 
           <p className="mt-6 text-xs tracking-wide text-earth/50">
             Prices indicative for 25&nbsp;kg food-grade bags, ex-mill. Custom packing, private labels and export documentation available on request.
           </p>
+        </Reveal>
+
+        {/* Flagship Real-World Packaging Showcase */}
+        <Reveal delay={160}>
+          <div className="mt-14 overflow-hidden rounded-3xl border border-earth/15 bg-rice/80 p-6 md:mt-20 md:p-10 shadow-sm backdrop-blur-sm">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-xl">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-gold/25 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-earth">
+                    Flagship Packaging Reference
+                  </span>
+                  <span className="text-xs text-earth/50">· 30 kg Wada Kolam</span>
+                </div>
+                <h3 className="mt-3 text-2xl font-light tracking-tight text-earth md:text-3xl">
+                  Keshar Kali <span className="font-serif italic font-normal">Authentic 30 kg Pack</span>
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-earth/70">
+                  Real physical wholesale packaging as photographed across culinary kitchen studios and golden harvest fields. Engineered with high-barrier laminated BOPP woven poly fabric, heat-sealed carry handle, multi-script regional branding, and certified Khila Khila Dana Wada Kolam rice.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setPhotoView('kitchen')}
+                    className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider transition cursor-pointer ${
+                      photoView === 'kitchen'
+                        ? 'bg-earth text-rice shadow-sm'
+                        : 'border border-earth/20 bg-earth/5 text-earth hover:bg-earth/10'
+                    }`}
+                  >
+                    Culinary Context (Kitchen Studio)
+                  </button>
+                  <button
+                    onClick={() => setPhotoView('field')}
+                    className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider transition cursor-pointer ${
+                      photoView === 'field'
+                        ? 'bg-earth text-rice shadow-sm'
+                        : 'border border-earth/20 bg-earth/5 text-earth hover:bg-earth/10'
+                    }`}
+                  >
+                    Origin Context (Paddy Harvest Field)
+                  </button>
+                </div>
+
+                <div className="mt-6 grid grid-cols-2 gap-4 border-t border-earth/15 pt-5 text-xs text-earth/70 sm:grid-cols-3">
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-widest text-earth/40">Gross Weight</span>
+                    <span className="font-medium text-earth">30 kg & 26 kg</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-widest text-earth/40">Material Grade</span>
+                    <span className="font-medium text-earth">Multi-Layer BOPP Woven</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-widest text-earth/40">Grain Spec</span>
+                    <span className="font-medium text-earth">5.2 mm · Medium Slender</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => pickAndQuote(0)}
+                    className="rounded-full bg-gold px-5 py-2.5 text-xs font-bold uppercase tracking-[0.16em] text-earth hover:bg-[#d8a846] transition shadow-sm cursor-pointer"
+                  >
+                    Request 30kg Quote →
+                  </button>
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('story')
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth' })
+                      }
+                    }}
+                    className="rounded-full border border-earth/30 px-5 py-2.5 text-xs font-medium text-earth hover:bg-earth/5 transition cursor-pointer"
+                  >
+                    View 3D Interactive Model (Scene 05)
+                  </button>
+                </div>
+              </div>
+
+              {/* Photo Display Card */}
+              <div className="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-earth/15 bg-white shadow-md lg:mx-0">
+                <img
+                  src={
+                    photoView === 'kitchen'
+                      ? '/images/kesharkali_product_kitchen.jpg'
+                      : '/images/kesharkali_product_field.jpg'
+                  }
+                  alt={
+                    photoView === 'kitchen'
+                      ? 'Keshar Kali 30kg Bag in Kitchen Studio'
+                      : 'Keshar Kali 30kg Bag in Harvest Paddy Field'
+                  }
+                  className="aspect-square w-full object-cover transition-all duration-700 hover:scale-105"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-4 text-white">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-[#f8c73c]">
+                    {photoView === 'kitchen' ? 'Kitchen Studio Reference' : 'Paddy Harvest Reference'}
+                  </div>
+                  <div className="text-xs text-white/85">
+                    {photoView === 'kitchen'
+                      ? 'Authentic 30kg BOPP sack beside cooked Wada Kolam plate'
+                      : 'Standing on log round in sunlit golden harvest field'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </Reveal>
       </div>
     </section>

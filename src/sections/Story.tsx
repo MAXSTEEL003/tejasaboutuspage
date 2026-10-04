@@ -538,7 +538,7 @@ function Final({ p }: { p: number; sel: number }) {
           <h2 className="mt-2 text-[clamp(2.2rem,5vw,4.2rem)] font-light leading-[1.02] tracking-tight text-white" style={rise(1, 0.1)}>Keshar Kali</h2>
           <p className="mt-1 font-serif text-base italic text-[#f8c73c] md:text-lg" style={rise(1, 0.15)}>Premium Wada Kolam Rice · Khila Khila Dana</p>
           <p className="mt-2 max-w-sm text-sm text-white/80 md:mt-3 md:text-base" style={rise(1, 0.2)}>
-            Authentic export packaging: high-barrier laminated BOPP sack, stitched white crepe band, red chain thread, and golden side gussets.
+            Authentic wholesale packaging: 30 kg high-barrier laminated BOPP sack, heat-sealed carry handle, multi-lingual regional branding, and golden side gussets.
           </p>
           <dl className="mt-4 grid max-w-sm grid-cols-3 gap-x-4 border-t border-white/20 pt-3 text-sm md:mt-6 md:pt-4" style={rise(1, 0.3)}>
             {[['Length', kesharkali.len], ['Texture', 'Fluffy & Separate'], ['Packing', '30 kg & 26 kg']].map(([k, val]) => (

@@ -112,13 +112,13 @@ function makeStudioGroundTexture(): THREE.CanvasTexture {
 function makeBag(_name?: string) {
   const g = new THREE.Group()
 
-  // Real packaging aspect ratio: 610w x 862h
-  const h = 3.3
-  const w = h * (610 / 862) // 2.335
+  // Real 30kg packaging aspect ratio: 550w x 1018h
+  const h = 3.4
+  const w = h * (550 / 1018) // ~1.837
 
-  // Subtle natural convex curvature so it catches real-time specular light and shadow
-  const segmentsX = 24
-  const segmentsY = 32
+  // Subtle natural convex curvature with weighted bottom belly
+  const segmentsX = 32
+  const segmentsY = 48
   const geo = new THREE.PlaneGeometry(w, h, segmentsX, segmentsY)
   const pos = geo.attributes.position
   for (let i = 0; i < pos.count; i++) {
@@ -126,24 +126,24 @@ function makeBag(_name?: string) {
     const y = pos.getY(i)
     const u = x / (w * 0.5) // -1 to 1
     const v = y / (h * 0.5) // -1 to 1
-    // Subtle plump pillow bulge that settles more in lower half
-    const bulge = Math.cos(u * Math.PI * 0.45) * 0.16 * (0.85 - 0.25 * v)
+    // 30kg rice settles into a plump lower belly while top handle remains taut
+    const bulge = Math.cos(u * Math.PI * 0.46) * 0.17 * (0.86 - 0.28 * v)
     pos.setZ(i, bulge)
   }
   geo.computeVertexNormals()
 
   const texLoader = new THREE.TextureLoader()
-  const tex = texLoader.load('/images/kesharkali_cutout_perfect.png')
+  const tex = texLoader.load('/images/kesharkali_bag_hd.png')
   tex.colorSpace = THREE.SRGBColorSpace
   tex.anisotropy = 16
 
-  const bumpTex = makeWovenSackBumpTexture(24, 36)
+  const bumpTex = makeWovenSackBumpTexture(20, 36)
   const mat = new THREE.MeshPhysicalMaterial({
     map: tex,
     bumpMap: bumpTex,
     bumpScale: 0.002,
     transparent: true,
-    alphaTest: 0.1,
+    alphaTest: 0.08,
     depthWrite: true,
     roughness: 0.28,
     metalness: 0.02,
@@ -496,7 +496,7 @@ export default function FinalScene(props: Props) {
     })
 
     // Contact shadow directly beneath 30kg sack base
-    const bagContact = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 1.4), contactMat)
+    const bagContact = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.25), contactMat)
     bagContact.rotation.x = -Math.PI / 2
     bagContact.position.set(-1.45, 0.004, -0.2)
     scene.add(bagContact)
