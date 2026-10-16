@@ -6,7 +6,6 @@ import Collection from "./sections/Collection"
 import { Heritage, Voices, Quote, Footer } from "./sections/Rest"
 import Trust from "./sections/Trust"
 import Network from "./sections/Network"
-import Pricing from "./sections/Pricing"
 import Faq from "./sections/Faq"
 import Nav from "./components/Nav"
 import Cursor from "./components/Cursor"
@@ -49,7 +48,6 @@ export default function App() {
         <Collection sel={sel} setSel={setSel} />
         <Heritage />
         <Network />
-        <Pricing setSel={setSel} />
         <Voices />
         <Faq />
         <Quote sel={sel} setSel={setSel} />

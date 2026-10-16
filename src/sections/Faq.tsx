@@ -39,7 +39,7 @@ export default function Faq() {
     >
       <div className="wrap grid-12">
         <div className="col-span-12 lg:col-span-5">
-          <SectionLabel n="08" tone="light">
+          <SectionLabel n="07" tone="light">
             Questions
           </SectionLabel>
           <SplitText

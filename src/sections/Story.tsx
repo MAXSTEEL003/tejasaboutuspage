@@ -56,7 +56,7 @@ export default function Story() {
   return (
     <section
       id="story"
-      className="relative bg-ink px-6 py-28 md:px-12 md:py-44"
+      className="relative bg-ink px-5 sm:px-6 py-16 sm:py-24 md:px-12 md:py-44"
     >
       <div className="mx-auto max-w-[1300px]">
         <Reveal>
@@ -73,7 +73,7 @@ export default function Story() {
             </Reveal>
           ))}
         </h2>
-        <div className="mt-24 grid gap-px bg-gold/15 md:grid-cols-3">
+        <div className="mt-12 sm:mt-16 md:mt-24 grid gap-px bg-gold/15 md:grid-cols-3">
           {[
             [
               "I",
@@ -92,13 +92,13 @@ export default function Story() {
             ],
           ].map(([n, t, d], i) => (
             <Reveal key={t} delay={i * 150} className="h-full">
-              <div className="group h-full bg-ink p-10 transition-colors duration-500 hover:bg-vault md:p-12">
-                <div className="font-display text-5xl italic text-gold/70 transition-colors group-hover:text-gold">
+              <div className="group h-full bg-ink p-6 sm:p-10 md:p-12 transition-colors duration-500 hover:bg-vault">
+                <div className="font-display text-4xl sm:text-5xl italic text-gold/70 transition-colors group-hover:text-gold">
                   {n}
                 </div>
-                <h3 className="mt-10 font-display text-3xl">{t}</h3>
-                <p className="mt-4 leading-relaxed text-sand">{d}</p>
-                <div className="mt-10 origin-left scale-x-50 opacity-70 transition-transform duration-700 group-hover:scale-x-100">
+                <h3 className="mt-6 sm:mt-10 font-display text-2xl sm:text-3xl">{t}</h3>
+                <p className="mt-3 sm:mt-4 leading-relaxed text-sand text-sm sm:text-base">{d}</p>
+                <div className="mt-6 sm:mt-10 origin-left scale-x-50 opacity-70 transition-transform duration-700 group-hover:scale-x-100">
                   <Grain w={140} id={`s${i}`} />
                 </div>
               </div>

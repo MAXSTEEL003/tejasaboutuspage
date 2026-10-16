@@ -178,34 +178,42 @@ export default function Nav() {
 
         {/* Mobile Dropdown Panel */}
         {open && (
-          <div
-            id="mobile-nav"
-            className="pointer-events-auto mt-2 w-full max-w-[1240px] max-h-[calc(100vh-88px)] overflow-y-auto rounded-3xl border border-white/20 bg-ink/95 backdrop-blur-2xl p-5 shadow-2xl lg:hidden animate-fadeIn"
-          >
-            <nav className="flex flex-col gap-1">
-              {navLinks.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className="eyebrow flex min-h-[44px] items-center justify-between border-b border-white/10 py-3 text-ivory hover:text-gold active:text-gold"
-                >
-                  <span className="text-xs">{item.name}</span>
-                  <span className="text-xs text-gold">→</span>
-                </a>
-              ))}
-              <div className="mt-3 flex flex-col gap-2 pt-1">
-                <a
-                  href="#quote"
-                  onClick={() => setOpen(false)}
-                  className="eyebrow flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-gold/50 bg-gold/20 py-3 text-gold"
-                >
-                  <span className="text-xs">SKIP TO QUOTE</span>
-                  <span>→</span>
-                </a>
-              </div>
-            </nav>
-          </div>
+          <>
+            {/* Backdrop click dismiss */}
+            <div
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden pointer-events-auto"
+              onClick={() => setOpen(false)}
+              aria-hidden="true"
+            />
+            <div
+              id="mobile-nav"
+              className="pointer-events-auto relative z-50 mt-2 w-full max-w-[1240px] max-h-[calc(100dvh-88px-env(safe-area-inset-top))] overflow-y-auto rounded-3xl border border-white/20 bg-ink/95 backdrop-blur-2xl p-5 sm:p-6 shadow-2xl lg:hidden animate-fadeIn pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+            >
+              <nav className="flex flex-col gap-1">
+                {navLinks.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="eyebrow flex min-h-[48px] items-center justify-between border-b border-white/10 py-3.5 text-ivory transition-colors hover:text-gold active:text-gold"
+                  >
+                    <span className="text-xs sm:text-sm font-medium tracking-widest">{item.name}</span>
+                    <span className="text-sm text-gold" aria-hidden="true">→</span>
+                  </a>
+                ))}
+                <div className="mt-4 flex flex-col gap-2.5 pt-1">
+                  <a
+                    href="#quote"
+                    onClick={() => setOpen(false)}
+                    className="eyebrow flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-gold/50 bg-gold/20 py-3.5 text-gold font-medium transition-all active:scale-95"
+                  >
+                    <span className="text-xs tracking-widest">SKIP TO QUOTE</span>
+                    <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+              </nav>
+            </div>
+          </>
         )}
       </header>
 
@@ -219,14 +227,14 @@ export default function Nav() {
           onClick={() => setShowSignIn(false)}
         >
           <div
-            className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border border-white/20 bg-[#14100b] p-6 sm:p-7 text-ivory shadow-[0_24px_64px_rgba(0,0,0,0.8)]"
+            className="relative w-full max-w-md max-h-[88dvh] overflow-y-auto rounded-3xl border border-white/20 bg-[#14100b] p-5 sm:p-7 text-ivory shadow-[0_24px_64px_rgba(0,0,0,0.8)] pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
             <button
               type="button"
               onClick={() => setShowSignIn(false)}
-              className="absolute right-4 top-4 grid h-10 w-10 min-h-[44px] min-w-[44px] place-items-center rounded-full border border-white/15 bg-white/5 text-sand hover:text-ivory hover:border-white/30"
+              className="absolute right-4 top-4 grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-full border border-white/15 bg-white/5 text-sand hover:text-ivory hover:border-white/30 active:scale-95 transition-transform"
               aria-label="Close dialog"
             >
               ✕
@@ -248,7 +256,7 @@ export default function Nav() {
               </div>
             </div>
 
-            <p className="mt-4 text-xs leading-relaxed text-sand">
+            <p className="mt-3 text-xs leading-relaxed text-sand">
               Direct access for authorized Mandi wholesalers, export partners,
               and institutional grain procurement teams.
             </p>
@@ -262,7 +270,7 @@ export default function Nav() {
                 <button
                   type="button"
                   onClick={() => setShowSignIn(false)}
-                  className="eyebrow mt-4 w-full rounded-full bg-gold py-2.5 text-ink font-semibold"
+                  className="eyebrow mt-4 min-h-[48px] w-full rounded-full bg-gold py-3 text-ink font-semibold active:scale-95 transition-transform"
                 >
                   Enter Portal
                 </button>
@@ -283,7 +291,7 @@ export default function Nav() {
                     type="text"
                     required
                     placeholder="e.g. TC-9482 or buyer@trade.com"
-                    className="w-full rounded-xl border border-white/15 bg-coal/80 px-4 py-2.5 text-sm text-ivory placeholder:text-sand/40 focus:border-gold focus:outline-none"
+                    className="w-full min-h-[48px] rounded-xl border border-white/15 bg-coal/80 px-4 py-3 text-base sm:text-sm text-ivory placeholder:text-sand/40 focus:border-gold focus:outline-none"
                   />
                 </div>
 
@@ -295,23 +303,23 @@ export default function Nav() {
                     type="password"
                     required
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-white/15 bg-coal/80 px-4 py-2.5 text-sm text-ivory placeholder:text-sand/40 focus:border-gold focus:outline-none"
+                    className="w-full min-h-[48px] rounded-xl border border-white/15 bg-coal/80 px-4 py-3 text-base sm:text-sm text-ivory placeholder:text-sand/40 focus:border-gold focus:outline-none"
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] text-sand">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                <div className="flex items-center justify-between text-xs text-sand">
+                  <label className="flex items-center gap-2 cursor-pointer min-h-[36px]">
                     <input
                       type="checkbox"
-                      className="accent-gold rounded"
+                      className="accent-gold rounded h-4 w-4"
                       defaultChecked
                     />
-                    <span className="eyebrow text-sand">Remember terminal</span>
+                    <span className="eyebrow text-sand text-[10px] sm:text-xs">Remember terminal</span>
                   </label>
                   <a
                     href="#quote"
                     onClick={() => setShowSignIn(false)}
-                    className="eyebrow text-gold hover:underline"
+                    className="eyebrow text-gold hover:underline text-[10px] sm:text-xs py-1"
                   >
                     Forgot PIN?
                   </a>
@@ -319,7 +327,7 @@ export default function Nav() {
 
                 <button
                   type="submit"
-                  className="eyebrow mt-2 flex w-full items-center justify-center gap-2 rounded-full border border-gold bg-gold py-3 text-ink shadow-sm transition-transform hover:brightness-105 active:scale-95"
+                  className="eyebrow mt-2 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full border border-gold bg-gold py-3.5 text-ink font-semibold shadow-sm transition-transform hover:brightness-105 active:scale-95"
                 >
                   <LockIcon className="h-3.5 w-3.5 text-ink" />
                   <span>Authenticate & Enter</span>

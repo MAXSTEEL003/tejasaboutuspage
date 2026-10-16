@@ -5,7 +5,6 @@ import {
   INDIA_MAINLAND_OUTLINE,
   INDIA_STATE_BORDERS,
   INDIA_ISLANDS,
-  INDIA_CLOSED_LANDMASS_SHAPES,
 } from "../data/indiaVectorData"
 import { SUPPLY_HUBS, StateHub } from "../data/networkData"
 import {
@@ -121,12 +120,12 @@ export default function India3DCanvas({
   const hoveredHubRef = useRef<StateHub | null>(null)
 
   // Origin hubs in data
-  const karnalHub = useMemo(
-    () => SUPPLY_HUBS.find((h) => h.id === "haryana")!,
+  const nagpurHub = useMemo(
+    () => SUPPLY_HUBS.find((h) => h.id === "nagpur")!,
     [],
   )
-  const wadaHub = useMemo(
-    () => SUPPLY_HUBS.find((h) => h.id === "maharashtra")!,
+  const miryalagudaHub = useMemo(
+    () => SUPPLY_HUBS.find((h) => h.id === "miryalaguda")!,
     [],
   )
 
@@ -227,26 +226,24 @@ export default function India3DCanvas({
     rimLight.position.set(-36, 38, -38)
     scene.add(rimLight)
 
-    // Origin citadel local accent lights (bounded distance so fragments outside range are skipped)
-    const karnalLight = new THREE.PointLight(0xffd700, 2.4, 28, 2)
-    const karnalWorldPos = svgToWorld3D(
-      karnalHub.x * 6.1543,
-      karnalHub.y * 6.93,
-      3.4,
-    )
-    karnalLight.position.copy(karnalWorldPos)
-    scene.add(karnalLight)
+    // Origin citadel local accent lights (Nagpur and Miryalaguda)
+    const nagpurLight = new THREE.PointLight(0xff7a45, 2.6, 32, 2)
+    const nagpurWorldPos = svgToWorld3D(nagpurHub.x * 6.1543, nagpurHub.y * 6.93, 3.4)
+    nagpurLight.position.copy(nagpurWorldPos)
+    scene.add(nagpurLight)
 
-    const wadaLight = new THREE.PointLight(0xff9900, 2.4, 28, 2)
-    const wadaWorldPos = svgToWorld3D(wadaHub.x * 6.1543, wadaHub.y * 6.93, 3.4)
-    wadaLight.position.copy(wadaWorldPos)
-    scene.add(wadaLight)
+    const miryalaLight = new THREE.PointLight(0x00e5a3, 2.6, 32, 2)
+    const miryalaWorldPos = svgToWorld3D(miryalagudaHub.x * 6.1543, miryalagudaHub.y * 6.93, 3.4)
+    miryalaLight.position.copy(miryalaWorldPos)
+    scene.add(miryalaLight)
 
-    // 6. Subcontinent 3D Extruded Geometry (Complete Watertight Closed Landmass Polygons across all states)
-    // 100% gapless, watertight coverage of all Indian mainland states and island archipelagos
-    const subcontinentShapes: THREE.Shape[] = INDIA_CLOSED_LANDMASS_SHAPES.map(
-      (pathData) => parseSvgPathToShape(pathData),
+    // 6. Subcontinent 3D Extruded Geometry (Seamless Unified Landmass + Islands)
+    // Extruded as a solid monolithic continent with beveled coastal rim to eliminate internal border canyons
+    const mainlandShape = parseSvgPathToShape(INDIA_MAINLAND_OUTLINE)
+    const islandShapes = INDIA_ISLANDS.map((pathData) =>
+      parseSvgPathToShape(pathData),
     )
+    const subcontinentShapes: THREE.Shape[] = [mainlandShape, ...islandShapes]
 
     // High-precision extrusion settings with beveled chamfers that catch grazing light
     const extrudeSettings: THREE.ExtrudeGeometryOptions = {
@@ -256,7 +253,7 @@ export default function India3DCanvas({
       steps: 1,
       bevelSize: 0.35,
       bevelThickness: 0.35,
-      curveSegments: 8, // Optimized from default 12 (smooth curves with ~33% fewer subdivisions)
+      curveSegments: 6, // Smooth curves with optimal vertex count
     }
     const landGeometry = new THREE.ExtrudeGeometry(
       subcontinentShapes,
@@ -314,7 +311,7 @@ export default function India3DCanvas({
     // 7. Luminous International & Coastal Boundaries (Gleaming Gold Perimeter)
     const intlBordersGeom = parseSvgPathsToLineSegmentsGeometry(
       INDIA_MAINLAND_OUTLINE,
-      2.09,
+      2.1,
     )
     const intlBordersMat = new THREE.LineBasicMaterial({
       color: 0xffe899,
@@ -331,7 +328,7 @@ export default function India3DCanvas({
     // 8. Internal State Boundaries (Refined Engraved Brass & Gold Filigree)
     const stateBordersGeom = parseSvgPathsToLineSegmentsGeometry(
       INDIA_STATE_BORDERS,
-      2.07,
+      2.08,
     )
     const stateBordersMat = new THREE.LineBasicMaterial({
       color: 0xc99632, // Luminous Warm Gold/Brass matching Dark Vector map borders
@@ -348,7 +345,7 @@ export default function India3DCanvas({
     // 9. Island Archipelago Perimeter Outlines (Warm Gold)
     const islandBordersGeom = parseSvgPathsToLineSegmentsGeometry(
       INDIA_ISLANDS,
-      2.08,
+      2.09,
     )
     const islandBordersMat = new THREE.LineBasicMaterial({
       color: 0xffd770,
@@ -380,11 +377,11 @@ export default function India3DCanvas({
     })
     scene.add(gridGroup)
 
-    // 11. Citadels (Karnal and Wada) Special 3D Diamond Beacons & Vertical Lasers
+    // 11. Citadels (Nagpur and Miryalaguda) Special 3D Diamond Beacons & Vertical Lasers
     const citadelGroup = new THREE.Group()
     const citadels = [
-      { hub: karnalHub, name: "Karnal Basmati Citadel", color: 0xffd700 },
-      { hub: wadaHub, name: "Wada Kolam Citadel", color: 0xff9900 },
+      { hub: nagpurHub, name: "Nagpur Central Grain Citadel", color: 0xff7a45 },
+      { hub: miryalagudaHub, name: "Miryalaguda Rice Milling Citadel", color: 0x00e5a3 },
     ]
 
     const animatedCitadels: Array<{
@@ -504,35 +501,77 @@ export default function India3DCanvas({
       halo.position.y = 0.04
       nodeGroup.add(halo)
 
-      // 3D Billboard Sprite Label (Code + Capital)
+      // High-DPI 3D Billboard Sprite Label (Code + Capital with Dynamic Width)
+      const cleanCap = hub.capital.split("(")[0].split("/")[0].trim()
       const labelCanvas = document.createElement("canvas")
-      labelCanvas.width = 256
-      labelCanvas.height = 76
       const lCtx = labelCanvas.getContext("2d")
       if (lCtx) {
-        lCtx.fillStyle = hub.isOrigin
-          ? "rgba(28, 20, 10, 0.94)"
-          : "rgba(14, 10, 6, 0.88)"
-        lCtx.strokeStyle = hub.isOrigin ? "#ffd700" : "#d7b264"
-        lCtx.lineWidth = 3
+        // Measure text dynamically for perfectly fitted badge width
+        const fontSize = 28
+        lCtx.font = `bold ${fontSize}px "Outfit", "Inter", -apple-system, sans-serif`
+        const codeWidth = lCtx.measureText(hub.code).width
+        lCtx.font = `500 ${fontSize - 4}px "Outfit", "Inter", -apple-system, sans-serif`
+        const capWidth = lCtx.measureText(cleanCap).width
+        const dotWidth = 20
+
+        const padX = 24
+        const cWidth = Math.ceil(padX * 2 + codeWidth + dotWidth + capWidth)
+        const cHeight = 80
+
+        labelCanvas.width = cWidth
+        labelCanvas.height = cHeight
+
+        lCtx.clearRect(0, 0, cWidth, cHeight)
+
+        // Smooth pill badge with translucent obsidian/gold gradient
         lCtx.beginPath()
-        lCtx.rect(4, 4, 248, 68)
+        const r = cHeight / 2 - 3
+        if (typeof lCtx.roundRect === "function") {
+          lCtx.roundRect(3, 3, cWidth - 6, cHeight - 6, r)
+        } else {
+          lCtx.rect(3, 3, cWidth - 6, cHeight - 6)
+        }
+
+        const grad = lCtx.createLinearGradient(0, 0, cWidth, 0)
+        if (hub.isOrigin) {
+          grad.addColorStop(0, "rgba(36, 24, 10, 0.95)")
+          grad.addColorStop(1, "rgba(20, 14, 6, 0.95)")
+        } else {
+          grad.addColorStop(0, "rgba(16, 12, 8, 0.90)")
+          grad.addColorStop(1, "rgba(10, 8, 5, 0.90)")
+        }
+        lCtx.fillStyle = grad
         lCtx.fill()
+
+        // Hairline gold border
+        lCtx.strokeStyle = hub.isOrigin
+          ? "rgba(255, 215, 0, 0.85)"
+          : "rgba(215, 178, 100, 0.55)"
+        lCtx.lineWidth = hub.isOrigin ? 3.5 : 2.5
         lCtx.stroke()
 
+        // Typography
+        const midY = cHeight / 2
+        let curX = padX
+
+        // State Code
         lCtx.fillStyle = hub.isOrigin ? "#ffd700" : "#e6be68"
-        lCtx.font = "bold 24px monospace"
+        lCtx.font = `bold ${fontSize}px "Outfit", "Inter", -apple-system, sans-serif`
         lCtx.textAlign = "left"
         lCtx.textBaseline = "middle"
-        lCtx.fillText(hub.code, 16, 38)
+        lCtx.fillText(hub.code, curX, midY)
+        curX += codeWidth + 8
 
-        lCtx.fillStyle = "rgba(215, 178, 100, 0.5)"
-        lCtx.fillText("•", 60, 38)
+        // Bullet separator
+        lCtx.fillStyle = "rgba(215, 178, 100, 0.45)"
+        lCtx.font = `bold ${fontSize - 6}px sans-serif`
+        lCtx.fillText("•", curX, midY)
+        curX += dotWidth
 
-        const cleanCap = hub.capital.split("(")[0].split("/")[0].trim()
+        // Capital name
         lCtx.fillStyle = "#f8ecdc"
-        lCtx.font = "bold 20px sans-serif"
-        lCtx.fillText(cleanCap, 78, 38)
+        lCtx.font = `600 ${fontSize - 4}px "Outfit", "Inter", -apple-system, sans-serif`
+        lCtx.fillText(cleanCap, curX, midY)
 
         const lTex = new THREE.CanvasTexture(labelCanvas)
         lTex.generateMipmaps = false
@@ -542,11 +581,14 @@ export default function India3DCanvas({
         const sMat = new THREE.SpriteMaterial({
           map: lTex,
           transparent: true,
-          depthTest: false,
+          depthTest: true,
+          depthWrite: false,
         })
         const labelSprite = new THREE.Sprite(sMat)
-        labelSprite.scale.set(5.8, 1.72, 1)
-        labelSprite.position.set(0, 3.2, 0)
+        const spriteHeight = 1.18
+        const spriteWidth = spriteHeight * (cWidth / cHeight)
+        labelSprite.scale.set(spriteWidth, spriteHeight, 1)
+        labelSprite.position.set(0, 3.55, 0)
         nodeGroup.add(labelSprite)
       }
 
@@ -583,7 +625,9 @@ export default function India3DCanvas({
     SUPPLY_HUBS.forEach((dest, destIdx) => {
       if (dest.isOrigin) return
 
-      const originHub = dest.originHub === "karnal" ? karnalHub : wadaHub
+      const originHub = dest.originHub === "miryalaguda" ? miryalagudaHub : nagpurHub
+      const routeColor = dest.originHub === "miryalaguda" ? 0x00e5a3 : 0xff7a45
+
       const pOrigin = svgToWorld3D(
         originHub.x * 6.1543,
         originHub.y * 6.93,
@@ -594,9 +638,8 @@ export default function India3DCanvas({
       const curve = createArchedSupplyCurve(pOrigin, pDest, 7.5)
       const pts = curve.getPoints(36)
       const lineGeom = new THREE.BufferGeometry().setFromPoints(pts)
-      const isFromKarnal = dest.originHub === "karnal"
       const lineMat = new THREE.LineBasicMaterial({
-        color: isFromKarnal ? 0xffdf78 : 0xf39c12,
+        color: routeColor,
         transparent: true,
         opacity: 0,
       })
@@ -613,7 +656,7 @@ export default function India3DCanvas({
         new THREE.BufferAttribute(posArray, 3),
       )
       const particleMat = new THREE.PointsMaterial({
-        color: isFromKarnal ? 0xffffff : 0xffe28a,
+        color: routeColor,
         size: 0.9,
         transparent: true,
         opacity: 0.9,
@@ -644,9 +687,59 @@ export default function India3DCanvas({
         tSize: 0.9,
         cPOp: 0.8,
         tPOp: 0.8,
-        tColor: new THREE.Color(isFromKarnal ? 0xffdf78 : 0xf39c12),
+        tColor: new THREE.Color(routeColor),
         delay: 0.9 + destIdx * 0.07,
       })
+    })
+
+    // Inter-Citadel Express Artery (Nagpur to Miryalaguda Central-South Spine)
+    const p1 = svgToWorld3D(nagpurHub.x * 6.1543, nagpurHub.y * 6.93, 4.2)
+    const p2 = svgToWorld3D(miryalagudaHub.x * 6.1543, miryalagudaHub.y * 6.93, 4.2)
+    const interCurve = createArchedSupplyCurve(p1, p2, 8.5)
+    const interPts = interCurve.getPoints(42)
+    const interLineGeom = new THREE.BufferGeometry().setFromPoints(interPts)
+    const interLineMat = new THREE.LineBasicMaterial({
+      color: 0xffd700,
+      transparent: true,
+      opacity: 0.85,
+    })
+    const interLine = new THREE.Line(interLineGeom, interLineMat)
+    routesGroup.add(interLine)
+
+    const interParticlesGeom = new THREE.BufferGeometry()
+    interParticlesGeom.setAttribute("position", new THREE.BufferAttribute(new Float32Array(5 * 3), 3))
+    const interParticlesMat = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 1.25,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+    })
+    const interParticles = new THREE.Points(interParticlesGeom, interParticlesMat)
+    routesGroup.add(interParticles)
+
+    const interLutPts = interCurve.getPoints(LUT_STEPS)
+    const interLut = new Float32Array(interLutPts.length * 3)
+    interLutPts.forEach((pt, i) => {
+      interLut[i * 3] = pt.x
+      interLut[i * 3 + 1] = pt.y
+      interLut[i * 3 + 2] = pt.z
+    })
+
+    supplyRoutes.push({
+      destId: "inter-nagpur-miryala",
+      curve: interCurve,
+      line: interLine,
+      particles: interParticles,
+      lut: interLut,
+      cOpacity: 0.75,
+      tOpacity: 0.75,
+      cSize: 1.25,
+      tSize: 1.25,
+      cPOp: 0.95,
+      tPOp: 0.95,
+      tColor: new THREE.Color(0xffd700),
+      delay: 0.6,
     })
     supplyCurvesRef.current = supplyRoutes
     scene.add(routesGroup)
@@ -707,7 +800,14 @@ export default function India3DCanvas({
     const applySize = () => {
       const w = container.clientWidth || 700
       const h = container.clientHeight || 560
-      camera.aspect = w / h
+      const aspect = w / h
+      camera.aspect = aspect
+      if (aspect < 1) {
+        // Broaden FOV dynamically so wide peninsular and eastern state extremities fit fully on narrow mobile screens
+        camera.fov = Math.min(56, 42 / Math.min(1, aspect * 1.08))
+      } else {
+        camera.fov = 42
+      }
       camera.updateProjectionMatrix()
       renderer.setPixelRatio(dprNow)
       renderer.setSize(w, h)
@@ -965,7 +1065,7 @@ export default function India3DCanvas({
       scene.clear()
       renderer.dispose()
     }
-  }, [karnalHub, wadaHub])
+  }, [nagpurHub, miryalagudaHub])
 
   // Eased target updates on hover/selection
   useEffect(() => {
@@ -1222,7 +1322,7 @@ export default function India3DCanvas({
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 border border-gold bg-white animate-pulse" />
-            <span>Karnal & Wada Citadels</span>
+            <span>Nagpur & Miryalaguda Citadels</span>
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 bg-gold" />

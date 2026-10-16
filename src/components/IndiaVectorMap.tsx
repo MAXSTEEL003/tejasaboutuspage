@@ -27,26 +27,39 @@ const StaticMapCartography = React.memo(function StaticMapCartography({
 }) {
   return (
     <>
-      {/* Watertight Subcontinent Landmass Fill (Northern Crown, 13 regions, 18 islands) */}
+      {/* Subcontinent State Polygons (Seamless Landmass Fill) */}
       <g className="landmass-layer">
         {INDIA_CLOSED_LANDMASS_SHAPES.map((shapeD, i) => (
           <path
             key={`land-${i}`}
             d={shapeD}
             fill={isDark ? "#16110a" : "#f5edd9"}
-            stroke={isDark ? "#c99632" : "#7a5410"}
-            strokeWidth={isDark ? "0.8" : "1.0"}
-            strokeLinejoin="round"
+            stroke="none"
           />
         ))}
       </g>
 
-      {/* Coastal & International Perimeter Outline */}
+      {/* Internal State Boundaries (Single Crisp Brass Seams with Zero Duplicate Strokes) */}
+      <g className="state-borders-layer">
+        {INDIA_STATE_BORDERS.map((borderD, i) => (
+          <path
+            key={`border-${i}`}
+            d={borderD}
+            fill="none"
+            stroke={isDark ? "#8a6523" : "#8c5319"}
+            strokeWidth={isDark ? "0.75" : "0.9"}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        ))}
+      </g>
+
+      {/* Coastal & International Perimeter Outline (Gleaming Gold Perimeter) */}
       <path
         d={INDIA_MAINLAND_OUTLINE}
         fill="none"
-        stroke={isDark ? "#f0c655" : "#6b450c"}
-        strokeWidth={isDark ? "1.5" : "1.7"}
+        stroke={isDark ? "#ffd700" : "#6b450c"}
+        strokeWidth={isDark ? "1.6" : "1.8"}
         strokeLinejoin="round"
       />
 
@@ -57,22 +70,8 @@ const StaticMapCartography = React.memo(function StaticMapCartography({
             key={`island-${i}`}
             d={islandPath}
             fill={isDark ? "#e5b842" : "#7a5410"}
-            stroke={isDark ? "#f0c655" : "#7a5410"}
+            stroke={isDark ? "#ffd700" : "#7a5410"}
             strokeWidth="0.8"
-          />
-        ))}
-      </g>
-
-      {/* Internal State Boundaries */}
-      <g className="borders-layer">
-        {INDIA_STATE_BORDERS.map((borderPath, i) => (
-          <path
-            key={`border-${i}`}
-            d={borderPath}
-            fill="none"
-            stroke={isDark ? "#8a6523" : "#8c5319"}
-            strokeWidth="0.95"
-            strokeOpacity={isDark ? 0.7 : 0.55}
           />
         ))}
       </g>
@@ -96,12 +95,12 @@ export default function IndiaVectorMap({
   )
 
   // Origin hubs
-  const karnalHub = useMemo(
-    () => SUPPLY_HUBS.find((h) => h.id === "haryana")!,
+  const nagpurHub = useMemo(
+    () => SUPPLY_HUBS.find((h) => h.id === "nagpur")!,
     [],
   )
-  const wadaHub = useMemo(
-    () => SUPPLY_HUBS.find((h) => h.id === "maharashtra")!,
+  const miryalagudaHub = useMemo(
+    () => SUPPLY_HUBS.find((h) => h.id === "miryalaguda")!,
     [],
   )
 
@@ -122,7 +121,7 @@ export default function IndiaVectorMap({
   const supplyRoutes = useMemo(() => {
     return SUPPLY_HUBS.map((dest) => {
       if (dest.isOrigin) return null
-      const origin = dest.originHub === "karnal" ? karnalHub : wadaHub
+      const origin = dest.originHub === "miryalaguda" ? miryalagudaHub : nagpurHub
 
       // Hub vector coordinates in 615.43 x 693 space
       const ox = origin.x * 6.1543
@@ -143,7 +142,7 @@ export default function IndiaVectorMap({
         path: `M ${ox.toFixed(1)} ${oy.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${dx.toFixed(1)} ${dy.toFixed(1)}`,
         originName: origin.hubName || origin.name,
         destName: dest.name,
-        isFromKarnal: dest.originHub === "karnal",
+        originHub: dest.originHub || "nagpur",
       }
     }).filter(Boolean) as Array<{
       id: string
@@ -151,9 +150,9 @@ export default function IndiaVectorMap({
       path: string
       originName: string
       destName: string
-      isFromKarnal: boolean
+      originHub: "nagpur" | "miryalaguda"
     }>
-  }, [karnalHub, wadaHub])
+  }, [nagpurHub, miryalagudaHub])
 
   const isDark = theme === "dark"
 
@@ -213,7 +212,7 @@ export default function IndiaVectorMap({
                   isDark ? "bg-saffron" : "bg-brass"
                 }`}
               />{" "}
-              2 Origin Mills
+              2 Origin Citadels
             </span>
             <span className="flex items-center gap-1.5">
               <span
@@ -291,22 +290,61 @@ export default function IndiaVectorMap({
                   stopOpacity="0.25"
                 />
               </linearGradient>
+
+              <linearGradient
+                id={`routeGradNagpur-${theme}`}
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  stopColor={isDark ? "#ff7a45" : "#ea580c"}
+                  stopOpacity="0.85"
+                />
+                <stop
+                  offset="100%"
+                  stopColor={isDark ? "#d7b264" : "#9a3412"}
+                  stopOpacity="0.25"
+                />
+              </linearGradient>
+
+              <linearGradient
+                id={`routeGradMiryala-${theme}`}
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  stopColor={isDark ? "#00e5a3" : "#059669"}
+                  stopOpacity="0.85"
+                />
+                <stop
+                  offset="100%"
+                  stopColor={isDark ? "#d7b264" : "#047857"}
+                  stopOpacity="0.25"
+                />
+              </linearGradient>
             </defs>
 
             {/* Memoized Static Mainland, Islands, and State Borders */}
             <StaticMapCartography isDark={isDark} />
 
-            {/* Inter-Mill Express Corridor (Karnal to Wada) */}
-            <line
-              x1={karnalHub.x * 6.1543}
-              y1={karnalHub.y * 6.93}
-              x2={wadaHub.x * 6.1543}
-              y2={wadaHub.y * 6.93}
-              stroke={isDark ? "#ffd875" : "#b45309"}
-              strokeWidth="1.8"
-              strokeDasharray="4 4"
-              className="opacity-75"
-            />
+            {/* Inter-Citadel Express Spine Line (Nagpur to Miryalaguda) */}
+            <g className="citadel-spine opacity-85">
+              <line
+                x1={nagpurHub.x * 6.1543}
+                y1={nagpurHub.y * 6.93}
+                x2={miryalagudaHub.x * 6.1543}
+                y2={miryalagudaHub.y * 6.93}
+                stroke={isDark ? "#ffd700" : "#d97706"}
+                strokeWidth="2"
+                strokeDasharray="5 5"
+              />
+            </g>
 
             {/* Supply Routes: Only animate the single active route to guarantee 60-120fps */}
             <g className="routes-layer">
@@ -324,9 +362,9 @@ export default function IndiaVectorMap({
                         ? isDark
                           ? "#ffffff"
                           : "#7a5410"
-                        : route.isFromKarnal
-                          ? `url(#routeGradKarnal-${theme})`
-                          : `url(#routeGradWada-${theme})`
+                        : route.originHub === "miryalaguda"
+                          ? `url(#routeGradMiryala-${theme})`
+                          : `url(#routeGradNagpur-${theme})`
                     }
                     strokeWidth={isHighlight ? 2.4 : 1.1}
                     strokeOpacity={isHighlight ? 1 : currentId ? 0.18 : 0.5}
@@ -388,7 +426,7 @@ export default function IndiaVectorMap({
                     aria-label={`${hub.name} supply hub, Capital ${capitalLabel}`}
                   >
                     {/* Invisible expanded tap target */}
-                    <circle cx={vx} cy={vy} r={18} fill="transparent" />
+                    <circle cx={vx} cy={vy} r={24} fill="transparent" />
 
                     {/* Outer Pulse Ring for Active / Origin */}
                     {(isActive || isOrigin) && (

@@ -247,12 +247,27 @@ export function parseSvgPathsToLineSegmentsGeometry(
 ): THREE.BufferGeometry {
   const pathList = Array.isArray(paths) ? paths : [paths]
   const segmentPairs: THREE.Vector3[] = []
+  const seenEdges = new Set<string>()
+
+  // Quantize coordinates to avoid duplicate shared boundaries between adjacent states
+  const q = (v: number) => (Math.round(v * 10) / 10).toFixed(1)
+  const edgeKey = (a: THREE.Vector3, b: THREE.Vector3) => {
+    const ka = `${q(a.x)},${q(a.z)}`
+    const kb = `${q(b.x)},${q(b.z)}`
+    return ka < kb ? `${ka}_${kb}` : `${kb}_${ka}`
+  }
 
   pathList.forEach((pathData) => {
     const polylines = parseSvgPathToLines(pathData, elevation, config)
     polylines.forEach((line) => {
       for (let i = 0; i < line.length - 1; i++) {
-        segmentPairs.push(line[i], line[i + 1])
+        const p1 = line[i]
+        const p2 = line[i + 1]
+        const key = edgeKey(p1, p2)
+        if (!seenEdges.has(key)) {
+          seenEdges.add(key)
+          segmentPairs.push(p1, p2)
+        }
       }
     })
   })

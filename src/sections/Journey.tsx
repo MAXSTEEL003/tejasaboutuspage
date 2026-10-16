@@ -11,7 +11,7 @@ import {
   FinalScene3D as FinalScene,
 } from "../components/Lazy3D"
 import { VARIETIES, MAX_MM } from "../data"
-import { scrollToY, onSmoothScroll } from "../lib/smooth"
+import { scrollToY, onSmoothScroll, getLenis } from "../lib/smooth"
 
 import harvestSunsetImg from "../assets/rice-harvest-sunset.webp"
 
@@ -452,7 +452,7 @@ function Explore({
         {v.name.split(" ")[0]}
       </div>
 
-      <div className="relative mx-auto grid h-full max-w-6xl grid-rows-[auto_minmax(0,1fr)_auto] gap-1 sm:gap-2 px-4 sm:px-6 pb-14 sm:pb-8 pt-16 sm:pt-20 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.35fr)] md:grid-rows-[minmax(0,1fr)_auto] md:gap-x-10 md:px-12 md:pt-24">
+      <div className="relative mx-auto grid h-full max-w-6xl grid-rows-[auto_minmax(0,1fr)_auto] gap-1 sm:gap-2 px-4 sm:px-6 pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-8 pt-16 sm:pt-20 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.35fr)] md:grid-rows-[minmax(0,1fr)_auto] md:gap-x-10 md:px-12 md:pt-24">
         <div
           className="min-w-0 md:self-center"
           style={{
@@ -639,7 +639,7 @@ function Explore({
                 aria-selected={i === sel}
                 tabIndex={i === sel ? 0 : -1}
                 onClick={() => setSel(i)}
-                className={`group relative flex min-h-[40px] sm:min-h-[44px] shrink-0 items-center gap-2 sm:gap-2.5 overflow-hidden rounded-full border px-3 py-2 text-left text-xs transition-all duration-500 md:justify-center ${
+                className={`group relative flex min-h-[44px] shrink-0 items-center gap-2 sm:gap-2.5 overflow-hidden rounded-full border px-3.5 py-2.5 text-left text-xs transition-all duration-500 md:justify-center ${
                   i === sel
                     ? "border-gold bg-gold text-ink shadow-md shadow-gold/20 font-medium"
                     : "border-gold/25 text-ivory/80 hover:border-gold/70 hover:bg-ivory/10"
@@ -696,7 +696,15 @@ const STAGES = [
   },
 ]
 
-function Processing({ p, sel }: { p: number; sel: number }) {
+function Processing({
+  p,
+  sel,
+  containerRef,
+}: {
+  p: number
+  sel: number
+  containerRef?: RefObject<HTMLElement | null>
+}) {
   const v = VARIETIES[sel]
   const o = s(p, 0.66, 0.69) * (1 - s(p, 0.875, 0.915))
   const cream = 1 - s(p, 0.69, 0.75)
@@ -704,8 +712,237 @@ function Processing({ p, sel }: { p: number; sel: number }) {
   const q = seg(p, 0.73, 0.86)
   const idx = Math.min(3, Math.floor(q * 4))
   const polished = idx >= 1
+
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [videoLoaded, setVideoLoaded] = useState(false)
+  const [videoError, setVideoError] = useState(false)
+  const isSeekingRef = useRef(false)
+  const pendingTimeRef = useRef<number | null>(null)
+
+  // Auto-play & auto-scroll states
+  const [isPlaying, setIsPlaying] = useState(false)
+  const hasAutoStartedRef = useRef(false)
+  const userHasPausedRef = useRef(false)
+
+  // Mark video ready on metadata load
+  const handleLoadedMetadata = () => {
+    const video = videoRef.current
+    if (video && Number.isFinite(video.duration) && video.duration > 0) {
+      if (!isPlaying) video.pause()
+      setVideoLoaded(true)
+      setVideoError(false)
+    }
+  }
+
+  // Handle cached or already-ready video element
+  useEffect(() => {
+    const video = videoRef.current
+    if (video && video.readyState >= 1 && Number.isFinite(video.duration) && video.duration > 0) {
+      if (!isPlaying) video.pause()
+      setVideoLoaded(true)
+      setVideoError(false)
+    }
+  }, [isPlaying])
+
+  // Toggle Auto Play / Pause with replay support
+  const togglePlay = () => {
+    const video = videoRef.current
+    if (!video) return
+
+    if (isPlaying) {
+      userHasPausedRef.current = true
+      video.pause()
+      setIsPlaying(false)
+    } else {
+      userHasPausedRef.current = false
+      const topEl = containerRef?.current || document.getElementById("top")
+
+      // If at or near the end of the process scene, rewind to Stage 01
+      if (q >= 0.98) {
+        video.currentTime = 0
+        if (topEl) {
+          const startScrollY = topEl.offsetTop + 0.73 * (topEl.offsetHeight - window.innerHeight)
+          const lenis = getLenis()
+          if (lenis) {
+            lenis.scrollTo(startScrollY, { immediate: true })
+          } else {
+            window.scrollTo(0, startScrollY)
+          }
+        }
+      }
+
+      video
+        .play()
+        .then(() => {
+          setIsPlaying(true)
+        })
+        .catch((err) => {
+          console.debug("Autoplay prevented:", err)
+        })
+    }
+  }
+
+  // Auto-start playback on entering Scene 3
+  useEffect(() => {
+    if (
+      p >= 0.73 &&
+      p <= 0.76 &&
+      videoLoaded &&
+      !videoError &&
+      !hasAutoStartedRef.current &&
+      !userHasPausedRef.current &&
+      !isPlaying
+    ) {
+      hasAutoStartedRef.current = true
+      const video = videoRef.current
+      if (video) {
+        video
+          .play()
+          .then(() => {
+            setIsPlaying(true)
+          })
+          .catch(() => {})
+      }
+    }
+
+    // Reset auto-start flag when scrolled back above Scene 3
+    if (p < 0.65) {
+      hasAutoStartedRef.current = false
+      userHasPausedRef.current = false
+    }
+  }, [p, videoLoaded, videoError, isPlaying])
+
+  // Pause auto-play gracefully if user actively scrolls manually
+  useEffect(() => {
+    if (!isPlaying) return
+
+    const handleUserInterrupt = () => {
+      userHasPausedRef.current = true
+      const video = videoRef.current
+      if (video) video.pause()
+      setIsPlaying(false)
+    }
+
+    window.addEventListener("wheel", handleUserInterrupt, { passive: true })
+    window.addEventListener("touchstart", handleUserInterrupt, { passive: true })
+    window.addEventListener("touchmove", handleUserInterrupt, { passive: true })
+    window.addEventListener("keydown", handleUserInterrupt, { passive: true })
+
+    return () => {
+      window.removeEventListener("wheel", handleUserInterrupt)
+      window.removeEventListener("touchstart", handleUserInterrupt)
+      window.removeEventListener("touchmove", handleUserInterrupt)
+      window.removeEventListener("keydown", handleUserInterrupt)
+    }
+  }, [isPlaying])
+
+  // Synchronize page scroll to video playback when Auto Play is active
+  useEffect(() => {
+    if (!isPlaying) return
+
+    let rafId = 0
+    const video = videoRef.current
+    const topEl = containerRef?.current || document.getElementById("top")
+
+    const syncLoop = () => {
+      if (!video || !topEl || video.paused || video.ended) {
+        if (video?.ended) {
+          setIsPlaying(false)
+        }
+        return
+      }
+
+      if (Number.isFinite(video.duration) && video.duration > 0) {
+        const prog = clamp(video.currentTime / video.duration, 0, 1)
+
+        // Stop auto-scroll when reaching the end of the 4th stage of Process
+        if (prog >= 0.995 || q >= 0.998) {
+          video.pause()
+          setIsPlaying(false)
+          return
+        }
+
+        // Map progress to Scene 3's range: p in [0.73, 0.86]
+        const targetP = 0.73 + prog * (0.86 - 0.73)
+        const targetScrollY = topEl.offsetTop + targetP * (topEl.offsetHeight - window.innerHeight)
+
+        const lenis = getLenis()
+        if (lenis) {
+          lenis.scrollTo(targetScrollY, { immediate: true })
+        } else {
+          window.scrollTo(0, targetScrollY)
+        }
+      }
+
+      rafId = requestAnimationFrame(syncLoop)
+    }
+
+    rafId = requestAnimationFrame(syncLoop)
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId)
+    }
+  }, [isPlaying, containerRef, q])
+
+  // Listen to seeked event to drain queued target timestamps without choking video decoder
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const onSeeked = () => {
+      isSeekingRef.current = false
+      if (pendingTimeRef.current !== null) {
+        const next = pendingTimeRef.current
+        pendingTimeRef.current = null
+        if (Math.abs(video.currentTime - next) >= 0.035) {
+          isSeekingRef.current = true
+          if ("fastSeek" in video && typeof (video as unknown as { fastSeek: (t: number) => void }).fastSeek === "function") {
+            try {
+              (video as unknown as { fastSeek: (t: number) => void }).fastSeek(next)
+            } catch {
+              video.currentTime = next
+            }
+          } else {
+            video.currentTime = next
+          }
+        }
+      }
+    }
+
+    video.addEventListener("seeked", onSeeked)
+    return () => video.removeEventListener("seeked", onSeeked)
+  }, [videoLoaded])
+
+  // Scrub video frames linked directly to normalized scroll progress q (0.0 -> 1.0) when manual
+  useEffect(() => {
+    if (isPlaying) return
+    const video = videoRef.current
+    if (!video || !videoLoaded || videoError || o <= 0) return
+    if (!Number.isFinite(video.duration) || video.duration <= 0) return
+
+    const targetTime = clamp(q * video.duration, 0, Math.max(0, video.duration - 0.05))
+
+    if (Math.abs(video.currentTime - targetTime) < 0.035) return
+
+    if (isSeekingRef.current || video.seeking) {
+      pendingTimeRef.current = targetTime
+    } else {
+      isSeekingRef.current = true
+      if ("fastSeek" in video && typeof (video as unknown as { fastSeek: (t: number) => void }).fastSeek === "function") {
+        try {
+          (video as unknown as { fastSeek: (t: number) => void }).fastSeek(targetTime)
+        } catch {
+          video.currentTime = targetTime
+        }
+      } else {
+        video.currentTime = targetTime
+      }
+    }
+  }, [q, videoLoaded, videoError, o, isPlaying])
+
   return (
     <div className="absolute inset-0 bg-earth text-rice" style={layer(o)}>
+      {/* Fallback image sequence (displays when processing.mp4 is not present or loading) */}
       {STAGES.map((st, i) => {
         const x =
           i === 0
@@ -721,9 +958,9 @@ function Processing({ p, sel }: { p: number; sel: number }) {
             src={st.img}
             alt={st.t}
             decoding="async"
-            className="absolute inset-0 h-full w-full object-cover will-change-transform"
+            className="absolute inset-0 h-full w-full object-cover will-change-transform transition-opacity duration-700"
             style={{
-              opacity: op * 0.62,
+              opacity: (videoLoaded && !videoError ? 0 : op) * 0.62,
               objectPosition: st.pos,
               transform: `scale(${1.08 + local * 0.08 * M}) translate3d(${(0.5 - local) * 3 * M}%, 0, 0)`,
               filter:
@@ -736,6 +973,26 @@ function Processing({ p, sel }: { p: number; sel: number }) {
           />
         )
       })}
+
+      {/* Scrub-synced Video layer */}
+      {!videoError && (
+        <video
+          ref={videoRef}
+          src="/processing.mp4"
+          poster={IMG.sack}
+          muted
+          playsInline
+          preload="auto"
+          onLoadedMetadata={handleLoadedMetadata}
+          onError={() => setVideoError(true)}
+          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700 will-change-transform"
+          style={{
+            opacity: videoLoaded ? 0.65 : 0,
+            filter: "brightness(.9) contrast(1.05)",
+          }}
+        />
+      )}
+
       <div className="absolute inset-0 bg-gradient-to-b from-earth/85 via-earth/25 to-earth/95" />
 
       {/* dust */}
@@ -771,10 +1028,37 @@ function Processing({ p, sel }: { p: number; sel: number }) {
         style={{ opacity: ui }}
       >
         <div style={{ transform: `translate3d(0, ${(1 - ui) * -24}px, 0)` }}>
-          <Label light>Scene 03 · The Processing</Label>
-          <h2 className="mt-3 max-w-xl text-[clamp(2rem,5vw,3.8rem)] font-light leading-tight tracking-tight">
-            Clean, calm, <span className="font-serif italic">exacting.</span>
-          </h2>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <Label light>Scene 03 · The Processing</Label>
+              <h2 className="mt-2 max-w-xl text-[clamp(1.8rem,4.5vw,3.6rem)] font-light leading-tight tracking-tight">
+                Clean, calm, <span className="font-serif italic">exacting.</span>
+              </h2>
+            </div>
+
+            {/* Small Auto Play / Pause Button */}
+            <button
+              type="button"
+              onClick={togglePlay}
+              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-gold/40 bg-ink/80 text-gold shadow-md backdrop-blur-md transition-all duration-300 hover:border-gold hover:bg-gold/20 hover:scale-105 active:scale-95"
+              aria-label={isPlaying ? "Pause auto play" : q >= 0.98 ? "Replay process" : "Auto play"}
+              title={isPlaying ? "Pause" : q >= 0.98 ? "Replay" : "Auto play"}
+            >
+              {isPlaying ? (
+                <svg className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24">
+                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                </svg>
+              ) : q >= 0.98 ? (
+                <svg className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24">
+                  <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+                </svg>
+              ) : (
+                <svg className="h-3 w-3 translate-x-0.5 fill-current sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
         <div style={{ transform: `translate3d(0, ${(1 - ui) * 40}px, 0)` }}>
@@ -889,7 +1173,7 @@ function Final({ p, sel }: { p: number; sel: number }) {
         />
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[52%] sm:h-[46%] flex-col justify-end sm:justify-center px-4 sm:px-6 pb-16 sm:pb-5 md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-[38%] md:justify-center md:px-0 md:pr-14 md:pb-0">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[52%] sm:h-[46%] flex-col justify-end sm:justify-center px-4 sm:px-6 pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-5 md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-[38%] md:justify-center md:px-0 md:pr-14 md:pb-0">
         <div className="pointer-events-auto">
           <div style={rise(1, 0)}>
             <Label>Scene 04 · The Final Product</Label>
@@ -935,13 +1219,13 @@ function Final({ p, sel }: { p: number; sel: number }) {
           >
             <a
               href="#collection"
-              className="flex min-h-[44px] items-center justify-center rounded-full bg-gold px-3 sm:px-4 py-2.5 sm:py-3.5 text-center text-xs sm:text-sm font-medium text-ink transition hover:bg-ivory active:scale-95"
+              className="flex min-h-[48px] items-center justify-center rounded-full bg-gold px-3 sm:px-4 py-3 sm:py-3.5 text-center text-xs sm:text-sm font-medium text-ink transition hover:bg-ivory active:scale-95"
             >
               Explore Products
             </a>
             <a
               href="#quote"
-              className="flex min-h-[44px] items-center justify-center rounded-full border border-gold/50 px-3 sm:px-4 py-2.5 sm:py-3.5 text-center text-xs sm:text-sm font-medium text-gold transition hover:bg-gold hover:text-ink active:scale-95"
+              className="flex min-h-[48px] items-center justify-center rounded-full border border-gold/50 px-3 sm:px-4 py-3 sm:py-3.5 text-center text-xs sm:text-sm font-medium text-gold transition hover:bg-gold hover:text-ink active:scale-95"
             >
               Request a Quote
             </a>
@@ -986,10 +1270,10 @@ function Chrome({
   const active = p < 0.45 ? 0 : p < 0.7 ? 1 : p < 0.9 ? 2 : 3
   return (
     <>
-      {/* chapter dots — story only */}
+      {/* chapter dots — story only (hidden on small mobile to avoid interfering with thumb scroll) */}
       <nav
         aria-label="Chapters"
-        className="fixed right-3 sm:right-4 top-1/2 z-30 flex -translate-y-1/2 flex-col items-end gap-2 sm:gap-3 text-white mix-blend-difference transition-opacity duration-700 md:right-8"
+        className="fixed right-3 sm:right-4 top-1/2 z-30 hidden sm:flex -translate-y-1/2 flex-col items-end gap-2 sm:gap-3 text-white mix-blend-difference transition-opacity duration-700 md:right-8"
         style={{ opacity: past ? 0 : 1, pointerEvents: past ? "none" : "auto" }}
       >
         {CHAPTERS.map((c, i) => (
@@ -1077,7 +1361,7 @@ export default function ScrollStory({
         <div className="sticky top-0 h-dvh overflow-hidden">
           <FarmHarvest p={p} />
           <Explore p={p} sel={sel} setSel={setSel} />
-          <Processing p={p} sel={sel} />
+          <Processing p={p} sel={sel} containerRef={ref} />
           <Final p={p} sel={sel} />
         </div>
       </div>

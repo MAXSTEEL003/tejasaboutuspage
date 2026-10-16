@@ -143,7 +143,7 @@ export function Voices() {
       </div>
       <div className="relative mx-auto max-w-4xl text-center">
         <div className="flex justify-center">
-          <SectionLabel n="07">Voices from the trade</SectionLabel>
+          <SectionLabel n="06">Voices from the trade</SectionLabel>
         </div>
         <div
           key={i}
@@ -207,7 +207,7 @@ export function Quote({
   const bagWeightKg = v.name === "Keshar Kali" ? 30 : 26
   const bagCount = Math.ceil(qty / bagWeightKg)
   const field =
-    "w-full border-b border-gold/30 bg-transparent py-3 text-ivory placeholder:text-sand/60 transition-colors focus:border-gold focus:outline-none aria-[invalid=true]:border-saffron"
+    "w-full min-h-[48px] border-b border-gold/30 bg-transparent py-3 text-base sm:text-sm text-ivory placeholder:text-sand/60 transition-colors focus:border-gold focus:outline-none aria-[invalid=true]:border-saffron"
   const lab = "eyebrow text-sand"
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -252,7 +252,7 @@ export function Quote({
     >
       <div className="wrap grid-12 gap-y-10 lg:gap-y-16">
         <Reveal className="col-span-12 lg:col-span-5">
-          <SectionLabel n="09">Request a quote</SectionLabel>
+          <SectionLabel n="08">Request a quote</SectionLabel>
           <SplitText
             id="quote-title"
             text={"Let us fill\n_your silo._"}
@@ -452,7 +452,7 @@ export function Quote({
                 />
               </label>
               <div className="sm:col-span-2">
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full !min-h-[48px] justify-center">
                   Send request, {v.name}
                 </Button>
               </div>
@@ -483,14 +483,14 @@ export function Footer() {
               ["Journey", "#top"],
               ["Collection", "#collection"],
               ["Heritage", "#heritage"],
-              ["Pricing", "#pricing"],
+              ["Network", "#network"],
               ["FAQ", "#faq"],
               ["Request a quote", "#quote"],
             ].map(([l, h]) => (
               <li key={l}>
                 <a
                   href={h}
-                  className="text-ivory/80 transition-colors hover:text-gold"
+                  className="inline-flex items-center min-h-[44px] py-1 text-ivory/80 transition-colors hover:text-gold"
                 >
                   {l}
                 </a>

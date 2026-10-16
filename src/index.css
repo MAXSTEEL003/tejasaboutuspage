@@ -28,12 +28,29 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-html { background: #0a0806; -webkit-tap-highlight-color: transparent; }
+html {
+  background: #0a0806;
+  -webkit-tap-highlight-color: transparent;
+  max-width: 100vw;
+  overflow-x: clip;
+}
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-stopped { overflow: hidden; }
 
-body { font-family: var(--font-sans); color: #f6f1e6; background: #0a0806; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: clip; line-height: 1.6; font-kerning: normal; font-feature-settings: 'kern', 'liga', 'calt'; text-size-adjust: 100%; }
+body {
+  font-family: var(--font-sans);
+  color: #f6f1e6;
+  background: #0a0806;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  max-width: 100vw;
+  overflow-x: clip;
+  line-height: 1.6;
+  font-kerning: normal;
+  font-feature-settings: 'kern', 'liga', 'calt';
+  text-size-adjust: 100%;
+}
 html { scroll-padding-top: 72px; }
 ::selection { background: #d9a441; color: #0a0806; }
 :focus-visible { outline: 2px solid #d9a441; outline-offset: 3px; }
@@ -48,18 +65,23 @@ p { text-wrap: pretty; }
 .font-sans { font-family: var(--font-sans); }
 .font-mono { font-family: var(--font-mono); }
 
-/* Form inputs & buttons must inherit font-family */
-input, textarea, select, button { font-family: inherit; }
+/* Form inputs & buttons must inherit font-family and remove mobile tap lag */
+input, textarea, select, button, a {
+  font-family: inherit;
+  touch-action: manipulation;
+}
 
-/* Prevent iOS Safari auto-zoom on input focus while maintaining clean hierarchy */
+/* Strictly enforce 16px on mobile viewports to prevent iOS Safari auto-zoom on field focus */
 @media (max-width: 768px) {
   input[type="text"],
   input[type="email"],
   input[type="tel"],
   input[type="number"],
+  input[type="password"],
+  input[type="search"],
   textarea,
   select {
-    font-size: 16px;
+    font-size: 16px !important;
   }
 }
 

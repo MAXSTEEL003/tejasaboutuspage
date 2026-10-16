@@ -28,16 +28,81 @@ export default function Pricing({ setSel }: { setSel: (n: number) => void }) {
           </p>
         </div>
         <Reveal className="mt-10 sm:mt-16">
-          {/* Mobile swipe hint */}
-          <div className="flex md:hidden items-center justify-between text-[11px] font-mono text-sand/70 mb-3 px-1">
-            <span className="flex items-center gap-1.5 text-gold">
-              <span>←</span> Swipe to inspect full export specifications <span>→</span>
-            </span>
-            <span className="text-[10px] uppercase tracking-wider text-sand/50">5 Varieties</span>
+          {/* Mobile-first editorial cards for phones (< md) */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {VARIETIES.map((v, i) => {
+              const isKesharKali = v.name === "Keshar Kali"
+              return (
+                <div
+                  key={v.name}
+                  className="border border-gold/20 bg-coal/80 p-5 shadow-lg transition-colors hover:border-gold/40"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-display text-2xl italic font-normal text-ivory">
+                        {v.name}
+                      </h3>
+                      <p className="eyebrow mt-1 text-xs text-sand">
+                        {v.subname}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider ${
+                        isKesharKali
+                          ? "border-gold bg-gold/15 text-gold font-bold shadow-[0_0_12px_rgba(217,164,65,0.2)]"
+                          : "border-gold/25 bg-black/40 text-sand"
+                      }`}
+                    >
+                      {v.bagWeight} · {isKesharKali ? "Signature" : "Standard"}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3 border-y border-gold/15 py-3 text-xs">
+                    <div>
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-sand/60 block">
+                        Silo Ageing
+                      </span>
+                      <span className="font-mono text-sm text-ivory/90 font-medium">
+                        {v.aged}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-sand/60 block">
+                        Grain Length
+                      </span>
+                      <span className="font-display text-base italic text-gold">
+                        {v.len}
+                      </span>
+                    </div>
+                    <div className="col-span-2 pt-1 border-t border-gold/10">
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-sand/60 block">
+                        Specification
+                      </span>
+                      <p className="font-sans text-xs text-sand/80 mt-0.5 leading-relaxed">
+                        {v.specs.varietyType} · {v.packaging}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <Button
+                      href="#quote"
+                      variant="line"
+                      className="w-full !min-h-[48px] justify-center !text-xs !tracking-wider"
+                      magnetic={false}
+                      onClick={() => setSel(i)}
+                    >
+                      Request Quote · {v.name}
+                    </Button>
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
+          {/* Desktop & Tablet Table (md+) */}
           <div
-            className="overflow-x-auto border border-gold/20 scrollbar-none sm:scrollbar-auto"
+            className="hidden md:block overflow-x-auto border border-gold/20"
             tabIndex={0}
             role="region"
             aria-label="Wholesale specification table"

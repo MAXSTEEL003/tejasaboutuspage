@@ -60,10 +60,10 @@ export default function Network() {
             />
           </div>
           <p className="lede col-span-12 text-sand lg:col-span-5 lg:col-start-8">
-            From dual milling citadels in{" "}
-            <span className="text-gold font-normal">Karnal (Haryana)</span> and{" "}
-            <span className="text-gold font-normal">Wada (Maharashtra)</span>,
-            direct grain transit connects 1,200+ commercial mandi wholesalers,
+            From twin milling and logistics citadels in{" "}
+            <span className="text-gold font-normal">Nagpur (Central)</span> and{" "}
+            <span className="text-gold font-normal">Miryalaguda (South)</span>,
+            direct grain transit connects 1,600+ commercial mandi wholesalers,
             luxury hospitality groups, and institutional buyers nationwide.
           </p>
         </div>
@@ -85,13 +85,13 @@ export default function Network() {
                 "Mandis & luxury HoReCa",
               ],
               [
-                48,
+                36,
                 "h",
                 "Transit Guarantee",
-                "Fast dispatch from Karnal & Wada",
+                "Fast dispatch from Nagpur & Miryalaguda",
               ],
               [
-                2,
+                NETWORK_STATS.originMills,
                 " Citadels",
                 "Origin Milling Hubs",
                 "Aerated silos & optical Sortex",
@@ -132,7 +132,7 @@ export default function Network() {
                   key={region}
                   type="button"
                   onClick={() => setSelectedRegion(region)}
-                  className={`border px-3 sm:px-4 py-2 min-h-[40px] text-[11px] sm:text-xs font-mono tracking-wider uppercase transition-all duration-300 ${
+                  className={`border px-3 sm:px-4 py-2 min-h-[44px] text-[11px] sm:text-xs font-mono tracking-wider uppercase transition-all duration-300 ${
                     isActive
                       ? "border-gold bg-gold text-ink font-semibold"
                       : "border-gold/25 bg-coal/50 text-sand hover:border-gold/50 hover:text-ivory"
@@ -151,14 +151,14 @@ export default function Network() {
             })}
           </div>
 
-          {/* Quick Search */}
-          <div className="relative w-full md:w-auto md:min-w-[260px]">
+          {/* Quick Search (Desktop) */}
+          <div className="relative w-full md:w-auto md:min-w-[260px] hidden lg:block">
             <input
               type="text"
               placeholder="Search state, capital, or variety..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full min-h-[44px] border border-gold/25 bg-coal/70 px-4 py-2 pl-9 pr-8 text-xs font-mono text-ivory placeholder:text-sand/40 outline-none transition-colors focus:border-gold focus:ring-1 focus:ring-gold"
+              className="w-full min-h-[44px] border border-gold/25 bg-coal/70 px-4 py-2 pl-9 pr-8 text-base sm:text-xs font-mono text-ivory placeholder:text-sand/40 outline-none transition-colors focus:border-gold focus:ring-1 focus:ring-gold"
             />
             <svg
               className="absolute left-3 top-3.5 h-3.5 w-3.5 text-gold/60"
@@ -197,8 +197,8 @@ export default function Network() {
             />
           </div>
 
-          {/* Right: State Directory & Logistics Breakdown (5 cols) */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
+          {/* Right: State Directory & Logistics Breakdown (Desktop only - hidden on mobile) */}
+          <div className="hidden lg:flex lg:col-span-5 flex-col gap-4">
             <div className="border border-gold/20 bg-coal/90 p-5 sm:p-6 shadow-2xl backdrop-blur-xl">
               <div className="flex items-center justify-between border-b border-gold/15 pb-4">
                 <div>
@@ -210,7 +210,7 @@ export default function Network() {
                   </p>
                 </div>
                 <span className="eyebrow text-gold">
-                  {filteredList.length} of 19 Active
+                  {filteredList.length} Active Hubs
                 </span>
               </div>
 
@@ -303,7 +303,7 @@ export default function Network() {
                   <Button
                     href="#quote"
                     variant="gold"
-                    className="w-full !min-h-[44px] !text-xs !tracking-wider"
+                    className="w-full !min-h-[48px] !text-xs !tracking-wider"
                   >
                     Book Supply · {activeState.name}
                   </Button>
