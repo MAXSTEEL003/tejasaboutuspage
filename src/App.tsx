@@ -1,54 +1,69 @@
-import { useState } from 'react'
-import ScrollStory from './sections/Story'
-import Marquee from './sections/Marquee'
-import Products from './sections/Products'
-import Heritage from './sections/Heritage'
-import Voices from './sections/Voices'
-import Quote from './sections/Quote'
-import Footer from './sections/Footer'
-import PartnerModal, { type PartnerUser } from './components/PartnerModal'
-import { scrollToTarget } from './lib/utils'
+import { useEffect, useState } from "react"
+import Hero from "./sections/Hero"
+import Journey from "./sections/Journey"
+import { Marquee } from "./sections/Story"
+import Collection from "./sections/Collection"
+import { Heritage, Voices, Quote, Footer } from "./sections/Rest"
+import Trust from "./sections/Trust"
+import Network from "./sections/Network"
+import Pricing from "./sections/Pricing"
+import Faq from "./sections/Faq"
+import Nav from "./components/Nav"
+import Cursor from "./components/Cursor"
+import Intro from "./components/Intro"
+import { initSmooth, scrollToHash } from "./lib/smooth"
 
 export default function App() {
   const [sel, setSel] = useState(0)
-  const [authModalOpen, setAuthModalOpen] = useState(false)
-  const [partnerUser, setPartnerUser] = useState<PartnerUser | null>(null)
-
+  useEffect(() => {
+    const stop = initSmooth()
+    const click = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement).closest(
+        'a[href^="#"]',
+      ) as HTMLAnchorElement | null
+      if (!a || e.defaultPrevented) return
+      const h = a.getAttribute("href")!
+      if (h.length > 1 && !document.querySelector(h) && h !== "#home") return
+      e.preventDefault()
+      scrollToHash(h)
+    }
+    document.addEventListener("click", click)
+    return () => {
+      stop()
+      document.removeEventListener("click", click)
+    }
+  }, [])
   return (
-    <main className="bg-ivory min-h-screen">
-      <ScrollStory
-        sel={sel}
-        setSel={setSel}
-        openAuthModal={() => setAuthModalOpen(true)}
-        partnerUser={partnerUser}
-      />
-      <Marquee />
-      <Products
-        sel={sel}
-        setSel={setSel}
-        onSkipToQuote={() => scrollToTarget('quote')}
-        openAuthModal={() => setAuthModalOpen(true)}
-      />
-      <Heritage />
-      <Voices />
-      <Quote
-        sel={sel}
-        setSel={setSel}
-        partnerUser={partnerUser}
-        openAuthModal={() => setAuthModalOpen(true)}
-      />
-      <Footer
-        openAuthModal={() => setAuthModalOpen(true)}
-        partnerUser={partnerUser}
-      />
-
-      <PartnerModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        partnerUser={partnerUser}
-        setPartnerUser={setPartnerUser}
-        onSkipToQuote={() => scrollToTarget('quote')}
-      />
-    </main>
+    <>
+      <a href="#main" className="skip">
+        Skip to content
+      </a>
+      <Intro />
+      <Cursor />
+      <Nav />
+      <main id="main" className="bg-ink">
+        <Hero />
+        <Journey sel={sel} setSel={setSel} />
+        <Marquee />
+        <Trust />
+        <Collection sel={sel} setSel={setSel} />
+        <Heritage />
+        <Network />
+        <Pricing setSel={setSel} />
+        <Voices />
+        <Faq />
+        <Quote sel={sel} setSel={setSel} />
+      </main>
+      <Footer />
+      <div className="h-[calc(3.5rem+env(safe-area-inset-bottom))] bg-coal sm:hidden" aria-hidden="true" />
+      <div className="fixed inset-x-0 bottom-0 z-40 flex border-t border-gold/30 bg-ink/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:hidden">
+        <a
+          href="#quote"
+          className="eyebrow flex min-h-[48px] flex-1 items-center justify-center bg-gold text-ink font-semibold tracking-wider transition-colors active:bg-gold-light"
+        >
+          Request a quote
+        </a>
+      </div>
+    </>
   )
 }
