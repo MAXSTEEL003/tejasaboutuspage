@@ -3,7 +3,27 @@ import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
 import path from "node:path"
 
-import siteConfiguration from "./.figma/make/site.json" with { type: "json" }
+import fs from "node:fs"
+
+let siteConfiguration: FigmaSiteConfiguration = {
+  title: "Tejas Canvassing | Premium Rice Merchants",
+  description: "Excellence in every grain. Discover our curated selection of premium aged and non-basmati rice varieties.",
+  robots: { index: true },
+}
+
+try {
+  const siteConfigPath = path.resolve(import.meta.dirname, "./.figma/make/site.json")
+  if (fs.existsSync(siteConfigPath)) {
+    const localConfig = JSON.parse(fs.readFileSync(siteConfigPath, "utf-8"))
+    siteConfiguration = {
+      ...siteConfiguration,
+      ...localConfig,
+      robots: { index: process.env.VERCEL_ENV === "preview" ? false : true },
+    }
+  }
+} catch {
+  // Use safe default configuration
+}
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
