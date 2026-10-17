@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useMemo } from "react"
+import { lazy, Suspense, useState, useMemo, useEffect } from "react"
 import { StateHub, SUPPLY_HUBS } from "../data/networkData"
 import { isWebGLAvailable } from "../three/map3dUtils"
 
@@ -15,7 +15,7 @@ const IndiaVectorMap = lazy(() => import("./IndiaVectorMap"))
 function MapFallback() {
   return (
     <div
-      className="grid aspect-[4/3] w-full place-items-center border border-gold/15 bg-coal/60"
+      className="grid aspect-[4/3] w-full place-items-center border-0 sm:border border-gold/15 bg-coal/60"
       role="status"
       aria-label="Loading map"
     >
@@ -35,6 +35,23 @@ export default function IndiaMapExperience({
 }: Props) {
   const hasWebGL = useMemo(() => isWebGLAvailable(), [])
   const [mode, setMode] = useState<MapMode>(hasWebGL ? "3d" : "vector-dark")
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 768
+    }
+    return false
+  })
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  // On phone / mobile screens, always show the dark vector map
+  const effectiveMode: MapMode = isMobile ? "vector-dark" : mode
 
   // Find currently active state
   const activeState = useMemo(
@@ -44,8 +61,8 @@ export default function IndiaMapExperience({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Luxury Cartography Engine Switcher Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border border-gold/20 bg-coal/80 p-2 shadow-lg">
+      {/* Luxury Cartography Engine Switcher Bar - hidden on mobile, shown on md+ screens */}
+      <div className="hidden md:flex flex-wrap items-center justify-between gap-2 border border-gold/20 bg-coal/80 p-2 shadow-lg">
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none max-w-full py-0.5">
           <span className="hidden sm:inline-block px-2 font-mono text-[10px] uppercase tracking-wider text-sand/60 shrink-0">
             Engine:
@@ -57,7 +74,7 @@ export default function IndiaMapExperience({
             onClick={() => setMode("3d")}
             disabled={!hasWebGL}
             className={`flex shrink-0 items-center gap-1.5 sm:gap-2 border px-2.5 sm:px-3.5 py-1.5 min-h-[38px] text-[11px] sm:text-xs font-mono tracking-wider uppercase transition-all duration-300 ${
-              mode === "3d"
+              effectiveMode === "3d"
                 ? "border-gold bg-gold text-ink font-semibold"
                 : "border-transparent text-sand hover:border-gold/20 hover:bg-gold/10 hover:text-ivory"
             } ${!hasWebGL ? "opacity-40 cursor-not-allowed" : ""}`}
@@ -80,7 +97,7 @@ export default function IndiaMapExperience({
             type="button"
             onClick={() => setMode("vector-dark")}
             className={`flex shrink-0 items-center gap-1.5 sm:gap-2 border px-2.5 sm:px-3.5 py-1.5 min-h-[38px] text-[11px] sm:text-xs font-mono tracking-wider uppercase transition-all duration-300 ${
-              mode === "vector-dark"
+              effectiveMode === "vector-dark"
                 ? "border-gold bg-gold text-ink font-semibold"
                 : "border-transparent text-sand hover:border-gold/20 hover:bg-gold/10 hover:text-ivory"
             }`}
@@ -102,7 +119,7 @@ export default function IndiaMapExperience({
             type="button"
             onClick={() => setMode("vector-light")}
             className={`flex shrink-0 items-center gap-1.5 sm:gap-2 border px-2.5 sm:px-3.5 py-1.5 min-h-[38px] text-[11px] sm:text-xs font-mono tracking-wider uppercase transition-all duration-300 ${
-              mode === "vector-light"
+              effectiveMode === "vector-light"
                 ? "border-gold bg-gold text-ink font-semibold"
                 : "border-transparent text-sand hover:border-gold/20 hover:bg-gold/10 hover:text-ivory"
             }`}
@@ -131,13 +148,13 @@ export default function IndiaMapExperience({
       {/* Map Display Container */}
       <div className="relative w-full">
         <Suspense fallback={<MapFallback />}>
-          {mode === "3d" && hasWebGL ? (
+          {effectiveMode === "3d" && hasWebGL ? (
             <India3DCanvas
               activeStateId={activeStateId}
               onSelectState={onSelectState}
               selectedRegion={selectedRegion}
             />
-          ) : mode === "vector-dark" ? (
+          ) : effectiveMode === "vector-dark" ? (
             <IndiaVectorMap
               activeStateId={activeStateId}
               onSelectState={onSelectState}
@@ -157,7 +174,7 @@ export default function IndiaMapExperience({
 
       {/* Active State Telemetry Strip (Synchronized across all modes) */}
       {activeState && (
-        <div className="relative z-20 mt-1 w-full animate-fadeIn border border-gold/20 bg-coal/95 p-5 sm:p-6 shadow-2xl">
+        <div className="relative z-20 mt-1 w-full animate-fadeIn border-0 sm:border border-gold/20 bg-coal/90 sm:bg-coal/95 p-4 sm:p-6 shadow-xl sm:shadow-2xl">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gold/15 pb-4">
             <div>
               <div className="flex items-center gap-3">

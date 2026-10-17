@@ -90,7 +90,14 @@ export default function Nav() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-2 sm:top-5 md:top-6 z-50 flex flex-col items-center px-2.5 sm:px-6 md:px-8 pointer-events-none pt-[env(safe-area-inset-top)]">
+      <header
+        style={{
+          top: "max(0.5rem, calc(0.35rem + env(safe-area-inset-top, 0px)))",
+          paddingLeft: "max(0.625rem, env(safe-area-inset-left, 0px))",
+          paddingRight: "max(0.625rem, env(safe-area-inset-right, 0px))",
+        }}
+        className="fixed inset-x-0 z-50 flex flex-col items-center pointer-events-none"
+      >
         {/* Transparent Floating Glass Pill Bar */}
         <div
           className={`pointer-events-auto relative flex w-full max-w-[1240px] items-center justify-between min-h-[48px] h-[52px] sm:h-[58px] md:h-[62px] px-3 sm:px-6 md:px-8 rounded-full border border-white/20 transition-all duration-500 ${

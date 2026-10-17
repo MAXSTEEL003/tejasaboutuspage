@@ -16,7 +16,10 @@ export default function Hero() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_72%_38%,rgba(217,164,65,.2),transparent_70%),radial-gradient(ellipse_50%_50%_at_8%_95%,rgba(236,138,42,.12),transparent_70%)]" />
       <GrainField />
       <div className="vignette pointer-events-none absolute inset-0" />
-      <div className="wrap relative grid-12 w-full items-end pb-14 pt-28 sm:pt-36 md:pb-28">
+      <div
+        style={{ paddingTop: "calc(max(6.5rem, 5.5rem + env(safe-area-inset-top, 0px)))" }}
+        className="wrap relative grid-12 w-full items-end pb-14 md:pb-28"
+      >
         <div className="col-span-12 lg:col-span-9">
           <p className="reveal in eyebrow text-gold" style={d(1500)}>
             Gadchiroli · Miryalaguda · Est. two decades of grain

@@ -719,10 +719,13 @@ function Processing({
   const isSeekingRef = useRef(false)
   const pendingTimeRef = useRef<number | null>(null)
 
-  // Auto-play & auto-scroll states
+  // Playback state & autostart tracker
   const [isPlaying, setIsPlaying] = useState(false)
   const hasAutoStartedRef = useRef(false)
-  const userHasPausedRef = useRef(false)
+
+  // User explicitly paused with the button vs temporarily paused by manual scrolling
+  const [explicitlyPaused, setExplicitlyPaused] = useState(false)
+  const idleTimerRef = useRef<number | null>(null)
 
   // Mark video ready on metadata load
   const handleLoadedMetadata = () => {
@@ -750,11 +753,11 @@ function Processing({
     if (!video) return
 
     if (isPlaying) {
-      userHasPausedRef.current = true
+      setExplicitlyPaused(true)
       video.pause()
       setIsPlaying(false)
     } else {
-      userHasPausedRef.current = false
+      setExplicitlyPaused(false)
       const topEl = containerRef?.current || document.getElementById("top")
 
       // If at or near the end of the process scene, rewind to Stage 01
@@ -790,7 +793,7 @@ function Processing({
       videoLoaded &&
       !videoError &&
       !hasAutoStartedRef.current &&
-      !userHasPausedRef.current &&
+      !explicitlyPaused &&
       !isPlaying
     ) {
       hasAutoStartedRef.current = true
@@ -808,33 +811,54 @@ function Processing({
     // Reset auto-start flag when scrolled back above Scene 3
     if (p < 0.65) {
       hasAutoStartedRef.current = false
-      userHasPausedRef.current = false
+      setExplicitlyPaused(false)
     }
-  }, [p, videoLoaded, videoError, isPlaying])
+  }, [p, videoLoaded, videoError, isPlaying, explicitlyPaused])
 
-  // Pause auto-play gracefully if user actively scrolls manually
+  // Let the user scroll freely when interacting; automatically resume autoplay when idle
   useEffect(() => {
-    if (!isPlaying) return
+    const handleScrollGesture = () => {
+      // User is actively trying to scroll -> let them scroll freely
+      if (isPlaying) {
+        const video = videoRef.current
+        if (video) video.pause()
+        setIsPlaying(false)
+      }
 
-    const handleUserInterrupt = () => {
-      userHasPausedRef.current = true
-      const video = videoRef.current
-      if (video) video.pause()
-      setIsPlaying(false)
+      if (idleTimerRef.current !== null) {
+        window.clearTimeout(idleTimerRef.current)
+        idleTimerRef.current = null
+      }
+
+      // If user did not explicitly tap the Pause button, resume autoplay when scroll stops
+      if (!explicitlyPaused && p >= 0.725 && p < 0.855) {
+        idleTimerRef.current = window.setTimeout(() => {
+          if (!explicitlyPaused && p >= 0.725 && p < 0.855) {
+            const video = videoRef.current
+            if (video && videoLoaded && !videoError) {
+              video
+                .play()
+                .then(() => setIsPlaying(true))
+                .catch(() => {})
+            }
+          }
+        }, 1300)
+      }
     }
 
-    window.addEventListener("wheel", handleUserInterrupt, { passive: true })
-    window.addEventListener("touchstart", handleUserInterrupt, { passive: true })
-    window.addEventListener("touchmove", handleUserInterrupt, { passive: true })
-    window.addEventListener("keydown", handleUserInterrupt, { passive: true })
+    window.addEventListener("wheel", handleScrollGesture, { passive: true })
+    window.addEventListener("touchstart", handleScrollGesture, { passive: true })
+    window.addEventListener("touchmove", handleScrollGesture, { passive: true })
 
     return () => {
-      window.removeEventListener("wheel", handleUserInterrupt)
-      window.removeEventListener("touchstart", handleUserInterrupt)
-      window.removeEventListener("touchmove", handleUserInterrupt)
-      window.removeEventListener("keydown", handleUserInterrupt)
+      window.removeEventListener("wheel", handleScrollGesture)
+      window.removeEventListener("touchstart", handleScrollGesture)
+      window.removeEventListener("touchmove", handleScrollGesture)
+      if (idleTimerRef.current !== null) {
+        window.clearTimeout(idleTimerRef.current)
+      }
     }
-  }, [isPlaying])
+  }, [isPlaying, explicitlyPaused, p, videoLoaded, videoError])
 
   // Synchronize page scroll to video playback when Auto Play is active
   useEffect(() => {
@@ -1024,25 +1048,20 @@ function Processing({
       )}
 
       <div
-        className="relative mx-auto flex h-full max-w-6xl flex-col justify-between px-6 pb-10 pt-24 md:px-12"
+        className="relative mx-auto flex h-full max-w-6xl flex-col justify-between px-4 sm:px-6 md:px-12 pt-[calc(max(5.5rem,4.5rem+env(safe-area-inset-top,0px)))] pb-[calc(max(1.5rem,1rem+env(safe-area-inset-bottom,0px)))]"
         style={{ opacity: ui }}
       >
         <div style={{ transform: `translate3d(0, ${(1 - ui) * -24}px, 0)` }}>
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <Label light>Scene 03 · The Processing</Label>
-              <h2 className="mt-2 max-w-xl text-[clamp(1.8rem,4.5vw,3.6rem)] font-light leading-tight tracking-tight">
-                Clean, calm, <span className="font-serif italic">exacting.</span>
-              </h2>
-            </div>
+          <div className="flex items-center justify-between gap-3">
+            <Label light>Scene 03 · The Processing</Label>
 
-            {/* Small Auto Play / Pause Button */}
+            {/* Small Auto Play / Pause Button - permanently visible and anchored */}
             <button
               type="button"
               onClick={togglePlay}
-              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-gold/40 bg-ink/80 text-gold shadow-md backdrop-blur-md transition-all duration-300 hover:border-gold hover:bg-gold/20 hover:scale-105 active:scale-95"
+              className="z-30 flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full border border-gold/45 bg-ink/90 text-gold shadow-lg backdrop-blur-md transition-all duration-300 hover:border-gold hover:bg-gold/20 hover:scale-105 active:scale-90"
               aria-label={isPlaying ? "Pause auto play" : q >= 0.98 ? "Replay process" : "Auto play"}
-              title={isPlaying ? "Pause" : q >= 0.98 ? "Replay" : "Auto play"}
+              title={isPlaying ? "Pause auto play" : q >= 0.98 ? "Replay process" : "Auto play"}
             >
               {isPlaying ? (
                 <svg className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24">
@@ -1059,27 +1078,30 @@ function Processing({
               )}
             </button>
           </div>
+          <h2 className="mt-1.5 sm:mt-2 max-w-xl text-[clamp(1.5rem,4.5vw,3.6rem)] font-light leading-tight tracking-tight">
+            Clean, calm, <span className="font-serif italic">exacting.</span>
+          </h2>
         </div>
 
         <div style={{ transform: `translate3d(0, ${(1 - ui) * 40}px, 0)` }}>
-          <div key={idx} className="rise mb-8 max-w-md">
-            <div className="flex items-baseline gap-3">
-              <span className="font-serif text-5xl italic text-gold md:text-7xl">
+          <div key={idx} className="rise mb-4 sm:mb-8 max-w-md">
+            <div className="flex items-baseline gap-2.5 sm:gap-3">
+              <span className="font-serif text-3xl italic text-gold sm:text-5xl md:text-7xl">
                 0{idx + 1}
               </span>
-              <span className="text-lg font-medium md:text-2xl">
+              <span className="text-base font-medium sm:text-lg md:text-2xl">
                 {STAGES[idx].t}
               </span>
             </div>
-            <p className="mt-3 text-sm text-rice/85 md:text-base">
+            <p className="mt-1.5 sm:mt-3 text-xs text-rice/85 sm:text-sm md:text-base line-clamp-2 md:line-clamp-none">
               {STAGES[idx].d}
             </p>
-            <span className="mt-4 inline-block rounded-full border border-white/25 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-rice/80 backdrop-blur">
+            <span className="mt-2.5 sm:mt-4 inline-block rounded-full border border-white/25 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[9px] sm:text-[10px] uppercase tracking-[0.22em] text-rice/80 backdrop-blur">
               {STAGES[idx].chip}
             </span>
           </div>
 
-          <div className="relative h-10">
+          <div className="relative h-8 sm:h-10">
             <div className="absolute inset-x-0 top-1/2 h-px bg-white/25" />
             <div
               className="absolute left-0 top-1/2 h-px bg-gold"
@@ -1096,9 +1118,9 @@ function Processing({
               />
             ))}
             <div
-              className="absolute top-1/2 w-14 -translate-y-1/2 md:w-20"
+              className="absolute top-1/2 w-12 sm:w-14 -translate-y-1/2 md:w-20"
               style={{
-                left: `calc(${q * 100}% - ${q * 56}px)`,
+                left: `calc(${q * 100}% - ${q * 48}px)`,
                 filter: polished
                   ? "brightness(1.08)"
                   : "brightness(.85) sepia(.3)",
@@ -1108,7 +1130,7 @@ function Processing({
               <Grain v={v} className="block w-full" />
             </div>
           </div>
-          <div className="mt-3 grid grid-cols-4 gap-2 text-[10px] uppercase tracking-[0.16em] md:text-xs">
+          <div className="mt-2.5 sm:mt-3 grid grid-cols-4 gap-1 sm:gap-2 text-[9px] uppercase tracking-[0.14em] sm:text-xs">
             {STAGES.map((st, i) => (
               <div
                 key={st.t}
@@ -1133,13 +1155,11 @@ function Processing({
   )
 }
 
-/* ---------- Scene 5 : cinematic reveal (flagship bag & rice bowl) ---------- */
+/* ---------- Scene 4 : cinematic reveal (flagship bag & rice bowl) ---------- */
 function Final({ p, sel }: { p: number; sel: number }) {
   const v = VARIETIES[sel] || VARIETIES[0]
   const t = seg(p, 0.885, 0.99)
   const o = s(p, 0.885, 0.91)
-  const info = s(t, 0.62, 0.86)
-  const close = s(t, 0.86, 1)
   const [wide, setWide] = useState(
     () => typeof window !== "undefined" && window.innerWidth >= 900,
   )
@@ -1148,6 +1168,11 @@ function Final({ p, sel }: { p: number; sel: number }) {
     window.addEventListener("resize", on)
     return () => window.removeEventListener("resize", on)
   }, [])
+
+  // On desktop: info reveals concurrently. On mobile: bag gets full focus first (t < 0.60), then info reveals underneath
+  const info = wide ? s(t, 0.55, 0.85) : s(t, 0.65, 0.92)
+  const close = s(t, 0.86, 1)
+
   const rise = (k: number, d = 0) => ({
     opacity: seg(info, d, d + 0.6) * k,
     transform: `translate3d(0, ${(1 - seg(info, d, d + 0.6)) * 26}px, 0)`,
@@ -1162,7 +1187,8 @@ function Final({ p, sel }: { p: number; sel: number }) {
           "radial-gradient(ellipse at 38% 55%, #2a1f12 0%, #14100b 55%, #0a0806 100%)",
       }}
     >
-      <div className="absolute inset-x-0 top-0 h-[48%] sm:h-[54%] md:inset-y-0 md:h-full">
+      {/* 3D Bag & Cascading Rice Bowl Canvas: given large, majestic viewport focus on mobile */}
+      <div className="absolute inset-x-0 top-0 h-[68%] sm:h-[75%] md:inset-y-0 md:h-full">
         <FinalScene
           t={t}
           visible={o > 0.005}
@@ -1173,32 +1199,35 @@ function Final({ p, sel }: { p: number; sel: number }) {
         />
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[52%] sm:h-[46%] flex-col justify-end sm:justify-center px-4 sm:px-6 pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-5 md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-[38%] md:justify-center md:px-0 md:pr-14 md:pb-0">
-        <div className="pointer-events-auto">
-          <div style={rise(1, 0)}>
-            <Label>Scene 04 · The Final Product</Label>
-          </div>
+      {/* Product Information: shown underneath after the bag is admired */}
+      <div
+        className={`absolute inset-x-0 bottom-0 flex flex-col justify-end px-4 sm:px-6 pb-[calc(max(2.5rem,1.5rem+env(safe-area-inset-bottom,0px)))] pt-12 md:pt-0 bg-gradient-to-t from-black/95 via-black/75 to-transparent md:bg-none md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-[38%] md:justify-center md:px-0 md:pr-14 md:pb-0 transition-opacity duration-500 ${
+          info > 0.02 ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      >
+        <div>
+          {/* Headings removed per user request: focus directly on the product name and details */}
           <h2
-            className="mt-1.5 sm:mt-2 text-[clamp(1.8rem,4.5vw,4.2rem)] font-light leading-[1.02] tracking-tight"
-            style={rise(1, 0.1)}
+            className="text-[clamp(1.8rem,4.5vw,4.2rem)] font-light leading-[1.02] tracking-tight"
+            style={rise(1, 0.05)}
           >
             {v.name}
           </h2>
           <p
             className="mt-0.5 sm:mt-1 font-serif text-sm sm:text-base italic text-gold md:text-lg"
-            style={rise(1, 0.15)}
+            style={rise(1, 0.1)}
           >
             {v.subname}
           </p>
           <p
             className="mt-1.5 sm:mt-2 max-w-sm text-xs sm:text-sm text-ivory/75 md:mt-3 md:text-base line-clamp-2 sm:line-clamp-none"
-            style={rise(1, 0.2)}
+            style={rise(1, 0.15)}
           >
             {v.note}
           </p>
           <dl
             className="mt-2.5 sm:mt-4 grid max-w-sm grid-cols-3 gap-x-2 sm:gap-x-4 border-t border-gold/20 pt-2 sm:pt-3 text-xs sm:text-sm md:mt-6 md:pt-4"
-            style={rise(1, 0.3)}
+            style={rise(1, 0.25)}
           >
             {[
               ["Length", v.len],
@@ -1215,11 +1244,11 @@ function Final({ p, sel }: { p: number; sel: number }) {
           </dl>
           <div
             className="mt-3 sm:mt-4 grid max-w-sm grid-cols-2 gap-2 md:mt-6 md:gap-3"
-            style={rise(1, 0.4)}
+            style={rise(1, 0.35)}
           >
             <a
               href="#collection"
-              className="flex min-h-[48px] items-center justify-center rounded-full bg-gold px-3 sm:px-4 py-3 sm:py-3.5 text-center text-xs sm:text-sm font-medium text-ink transition hover:bg-ivory active:scale-95"
+              className="flex min-h-[48px] items-center justify-center rounded-full bg-gold px-3 sm:px-4 py-3 sm:py-3.5 text-center text-xs sm:text-sm font-medium text-ink transition hover:bg-ivory active:scale-95 shadow-md"
             >
               Explore Products
             </a>
@@ -1231,7 +1260,7 @@ function Final({ p, sel }: { p: number; sel: number }) {
             </a>
           </div>
           <div
-            className="mt-3 sm:mt-5 md:mt-9"
+            className="mt-3 sm:mt-5 md:mt-9 hidden sm:block"
             style={{
               opacity: close,
               transform: `translate3d(0, ${(1 - close) * 18}px, 0)`,
