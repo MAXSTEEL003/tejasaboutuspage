@@ -33,6 +33,11 @@ export function makeStudioEnv(renderer: THREE.WebGLRenderer) {
   panel(8, 3, "#ff9a3c", 3.2, -5, -2, -9)
   panel(10, 2, "#fff4de", 2.2, 0, 6.8, 0)
   panel(5, 5, "#ffd9a0", 1.4, 2, 0, 10)
+  const gl = renderer.getContext()
+  if (gl && "pixelStorei" in gl) {
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false)
+  }
   const pm = new THREE.PMREMGenerator(renderer)
   const tex = pm.fromScene(s, 0.035).texture
   pm.dispose()
